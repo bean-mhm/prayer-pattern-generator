@@ -1,0 +1,276 @@
+@font-face {
+  font-family: Rubik;
+  src: url(../fonts/Rubik/Rubik-VariableFont_wght.ttf);
+}
+
+:root {
+  --font-family: Rubik, system-ui, sans-serif;
+  --font-size: 20px;
+
+  --bg-color: rgb(0, 0, 0);
+  --text-color: #f2f2f2;
+
+  --selection-color: #5342ec77;
+
+  --scrollbar-fg-color: #5342ec;
+  --scrollbar-bg-color: #1d1f3b;
+
+  --link-color: #5342ec;
+  --link-color-hover: color-mix(in oklab, var(--link-color), white 25%);
+}
+
+@media only screen and (max-width: 720px) {
+  :root {
+    --font-size: 19px;
+  }
+}
+
+@media only screen and (max-width: 540px) {
+  :root {
+    --font-size: 17px;
+  }
+}
+
+@media only screen and (max-width: 480px) {
+  :root {
+    --font-size: 16px;
+  }
+}
+
+@media only screen and (max-width: 340px) {
+  :root {
+    --font-size: 14px;
+  }
+}
+
+@media only screen and (max-width: 290px) {
+  :root {
+    --font-size: 12px;
+  }
+}
+
+::selection {
+  background-color: var(--selection-color);
+}
+
+::-moz-selection {
+  background-color: var(--selection-color);
+}
+
+::-ms-selection {
+  background-color: var(--selection-color);
+}
+
+::-webkit-selection {
+  background-color: var(--selection-color);
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  overflow-x: hidden;
+  overflow-y: hidden;
+
+  text-align: left;
+  direction: ltr;
+
+  font-family: var(--font-family);
+  font-size: var(--font-size);
+
+  background-color: var(--bg-color);
+  color: var(--text-color);
+}
+
+.wrapper {
+  display: block;
+  width: 100vw;
+  height: 100vh;
+  margin: 0;
+  padding: 0;
+
+  overflow-x: hidden;
+  overflow-y: scroll;
+
+  scrollbar-color: var(--scrollbar-fg-color) var(--scrollbar-bg-color);
+  scrollbar-width: 4px;
+}
+
+.container {
+  width: 100%;
+  padding: 0;
+  padding: 0;
+
+  display: flex;
+  flex-flow: column nowrap;
+  justify-content: flex-start;
+  align-items: flex-start;
+
+  overflow-x: hidden;
+  overflow-y: hidden;
+}
+
+/* user should manually add height */
+.spacing {
+  display: block;
+  margin-left: 0;
+  margin-right: 0;
+  padding: 0;
+  width: 0;
+  height: 0;
+
+  background-color: #00000000;
+  color: #00000000;
+}
+
+.spacing::selection {
+  background-color: #00000000;
+}
+
+.spacing::-moz-selection {
+  background-color: #00000000;
+}
+
+.spacing::-ms-selection {
+  background-color: #00000000;
+}
+
+.spacing::-webkit-selection {
+  background-color: #00000000;
+}
+
+#canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  pointer-events: none;
+  z-index: -10;
+
+  image-rendering: smooth;
+}
+
+#error-message {
+  width: 100vw;
+  height: 100vh;
+  text-align: center;
+  align-content: center;
+}
+
+a {
+  color: var(--link-color);
+  text-decoration: none;
+}
+
+a:hover {
+  color: var(--link-color-hover);
+  text-decoration: underline;
+}
+
+.nodecor {
+  text-decoration: none !important;
+  text-decoration-line: none;
+  text-decoration-color: #00000000;
+}
+
+a.nodecor {
+  color: var(--text-color);
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+p {
+  margin-top: 1em;
+  margin-bottom: 1em;
+
+  line-height: 1.15em;
+  word-spacing: 0.05em;
+}
+
+h1 {
+  font-weight: 900;
+  font-size: 1.75rem;
+}
+
+h2 {
+  font-weight: 900;
+  font-size: 1.5rem;
+}
+
+h3 {
+  font-weight: bold;
+  font-size: 1.4rem;
+}
+
+h4 {
+  font-weight: bold;
+  font-size: 1.3rem;
+}
+
+h5 {
+  font-weight: bold;
+  font-size: 1.2rem;
+}
+
+h6 {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+p {
+  font-size: 1rem;
+  text-align: justify;
+}
+
+strong {
+  font-weight: bolder;
+}
+
+.dim {
+  opacity: 0.8;
+  font-family: var(--default-fonts);
+}
+
+.dimmer {
+  opacity: 0.6;
+  font-family: var(--default-fonts);
+}
+
+.small {
+  font-size: 0.9em;
+}
+
+.bold {
+  font-weight: bold;
+}
+
+.black {
+  font-weight: 900;
+}
+
+.center {
+  text-align: center;
+  align-self: center;
+}
+
+.article {
+  align-self: center;
+
+  width: 60rem;
+  max-width: 98vw;
+
+  padding: 2em 2.2em 2em 2.2em;
+  box-sizing: border-box;
+
+  border-radius: 1em;
+  background-color: rgba(33, 33, 33, 0.8);
+}
+
+.br {
+  display: block;
+  width: 100%;
+  height: 0;
+  margin: 1rem 0 1rem 0;
+}
