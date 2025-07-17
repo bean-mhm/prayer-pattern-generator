@@ -1,4 +1,36 @@
 _state = {};
+_params = {
+    // tile
+    tile_size: [200., 400], // px
+    border_thickness: 3., // px
+
+    // grid lines
+    grid_lines_density: 210.,
+    grid_lines_thickness: 1., // px
+    grid_lines_opacity_horizontal: .05,
+    grid_lines_opacity_vertical: .05,
+
+    // masjad
+    masjad_position: .125, // 0: top, 1: bottom
+    masjad_radius: .05, // relative to tile size
+
+    // feet
+    feet_vertical_position: .2, // 0: bottom, 1: top
+    feet_horizontal_distance: .12, // relative to tile size
+    feet_size: [.05, .13], // relative to tile size
+    feet_thickness: 1., // px
+    feet_opacity: .2,
+
+    // transform
+    transform_scale: [1., 1.],
+    transform_skew: [0., 0.],
+    transform_rotation: 0., // degrees
+    transform_offset: [0., 0.], // px
+
+    // colors
+    background_color: [0., 0., 0.],
+    pattern_color: [1., 1., 1.]
+};
 
 function init_canvas() {
     _state.canvas_ready = false;
@@ -51,671 +83,39 @@ void main() {
 precision highp float;
 precision highp int;
 
-
-
-/*___________ math & integer utils ____________*/
-
-const float PI = 3.141592653589793238462643383;
-const float TAU = 6.283185307179586476925286767;
-const float PI_OVER_2 = 1.570796326794896619231321692;
-const float INV_PI = .318309886183790671537767527;
-const float INV_TAU = .159154943091895335768883763;
-const float SQRT_2 = 1.414213562373095048801688724;
-const float INV_SQRT_2 = .707106781186547524400844362;
-const float PHI = 1.618033988749894848204586834;
-
-#define FUNC_WRAP(T) \
-T wrap(T v, float start, float end) \
-{ \
-    return start + mod(v - start, end - start); \
-}
-
-#define FUNC_REMAP(T) \
-T remap(T v, float inp_start, float inp_end, float out_start, float out_end) \
-{ \
-    return out_start \
-        + ((out_end - out_start) / (inp_end - inp_start)) * (v - inp_start); \
-}
-
-#define FUNC_REMAP_CLAMP(T) \
-T remap_clamp( \
-    T v, \
-    float inp_start, \
-    float inp_end, \
-    float out_start, \
-    float out_end \
-) \
-{ \
-    T t = clamp((v - inp_start) / (inp_end - inp_start), 0., 1.); \
-    return out_start + t * (out_end - out_start); \
-}
-
-#define FUNC_REMAP01(T) \
-T remap01(T v, float inp_start, float inp_end) \
-{ \
-    return clamp((v - inp_start) / (inp_end - inp_start), 0., 1.); \
-}
-
-#define FUNC_LENGTH_SQ(T) \
-float length_sq(T v) \
-{ \
-    return dot(v, v); \
-}
-
-#define FUNC_DIST_SQ(T) \
-float dist_sq(T a, T b) \
-{ \
-    a -= b; \
-    return dot(a, a); \
-}
-
-FUNC_WRAP(float)
-FUNC_WRAP(vec2)
-FUNC_WRAP(vec3)
-FUNC_WRAP(vec4)
-
-FUNC_REMAP(float)
-FUNC_REMAP(vec2)
-FUNC_REMAP(vec3)
-FUNC_REMAP(vec4)
-
-FUNC_REMAP_CLAMP(float)
-FUNC_REMAP_CLAMP(vec2)
-FUNC_REMAP_CLAMP(vec3)
-FUNC_REMAP_CLAMP(vec4)
-
-FUNC_REMAP01(float)
-FUNC_REMAP01(vec2)
-FUNC_REMAP01(vec3)
-FUNC_REMAP01(vec4)
-
-FUNC_LENGTH_SQ(vec2)
-FUNC_LENGTH_SQ(vec3)
-FUNC_LENGTH_SQ(vec4)
-
-FUNC_DIST_SQ(vec2)
-FUNC_DIST_SQ(vec3)
-FUNC_DIST_SQ(vec4)
-
-#define inv_step(a, b) (step(b, a))
-
-float chebyshev_dist(vec2 a, vec2 b)
-{
-    return max(abs(a.x - b.x), abs(a.y - b.y));
-}
-
-float chebyshev_dist(vec3 a, vec3 b)
-{
-    return max(
-        max(abs(a.x - b.x), abs(a.y - b.y)),
-        abs(a.z - b.z)
-    );
-}
-
-float chebyshev_dist(vec4 a, vec4 b)
-{
-    return max(
-        max(
-            max(abs(a.x - b.x), abs(a.y - b.y)),
-            abs(a.z - b.z)
-        ),
-        abs(a.w - b.w)
-    );
-}
-
-#define idiv_ceil(a, b) (((a) + (b) - 1) / (b))
-#define imod_positive(a, b) ((((a) % (b)) + (b)) % (b))
-
-int iabs(int v)
-{
-    if (v < 0)
-    {
-        return -v;
-    }
-    return v;
-}
-
-int imin(int a, int b)
-{
-    if (a < b)
-    {
-        return a;
-    }
-    return b;
-}
-
-int imax(int a, int b)
-{
-    if (a > b)
-    {
-        return a;
-    }
-    return b;
-}
-
-int iclamp(int v, int start, int end)
-{
-    if (v < start)
-    {
-        v = start;
-    }
-    if (v > end)
-    {
-        v = end;
-    }
-    return v;
-}
-
-float min_component(vec2 v)
-{
-    return min(v.x, v.y);
-}
-
-float min_component(vec3 v)
-{
-    return min(min(v.x, v.y), v.z);
-}
-
-float min_component(vec4 v)
-{
-    return min(min(min(v.x, v.y), v.z), v.w);
-}
-
-float max_component(vec2 v)
-{
-    return max(v.x, v.y);
-}
-
-float max_component(vec3 v)
-{
-    return max(max(v.x, v.y), v.z);
-}
-
-float max_component(vec4 v)
-{
-    return max(max(max(v.x, v.y), v.z), v.w);
-}
-
-int min_component(ivec2 v)
-{
-    return imin(v.x, v.y);
-}
-
-int min_component(ivec3 v)
-{
-    return imin(imin(v.x, v.y), v.z);
-}
-
-int min_component(ivec4 v)
-{
-    return imin(imin(imin(v.x, v.y), v.z), v.w);
-}
-
-int max_component(ivec2 v)
-{
-    return imax(v.x, v.y);
-}
-
-int max_component(ivec3 v)
-{
-    return imax(imax(v.x, v.y), v.z);
-}
-
-int max_component(ivec4 v)
-{
-    return imax(imax(imax(v.x, v.y), v.z), v.w);
-}
-
-// error function (erf) approximation with max error: 1.5 * 10^-7
-// https://en.wikipedia.org/wiki/Error_function
-float erf(float v)
-{
-    const float p = .3275911;
-    const float a1 = .254829592;
-    const float a2 = -.284496736;
-    const float a3 = 1.421413741;
-    const float a4 = -1.453152027;
-    const float a5 = 1.061405429;
-    
-    float x = abs(v);
-    
-    float t = 1. / (1. + p * x);
-    float t2 = t * t;
-    float t3 = t2 * t;
-    float t4 = t3 * t;
-    float t5 = t4 * t;
-    
-    float positive_only = 1. - exp(-x * x) * ((a1 * t) + (a2 * t2) + (a3 * t3) + (a4 * t4) + (a5 * t5));
-    return sign(v) * positive_only;
-}
-
-// approx. CDF of normal / gaussian distribution with mean=0 and std=1
-// https://en.wikipedia.org/wiki/Normal_distribution
-float normal_cdf(float v)
-{
-    return erf(v * INV_SQRT_2) * .5 + .5;
-}
-
-float bilinear(
-    float val_bl,
-    float val_tl,
-    float val_tr,
-    float val_br,
-    vec2 offs
-)
-{
-    return mix(
-        mix(val_bl, val_br, offs.x),
-        mix(val_tl, val_tr, offs.x),
-        offs.y
-    );
-}
-
-// credits to AHSEN (https://www.shadertoy.com/user/01000001)
-// https://www.desmos.com/calculator/5d6ph151vi interactive :D
-float cubic_interp(float a, float b, float c, float d, float t)
-{
-    float one = t - 1.;
-    float two = t - 2.;
-    float three = t - 3.;
-    return (
-        (-one * two * three * a)
-        + (t * one * two * d)
-        + (3. * t * two * three * b)
-        - (3. * t * one * three * c)
-    ) / 6.;
-}
-
-float dist_along_line(vec2 p, vec2 line_start, vec2 line_end)
-{
-    vec2 dir = line_end - line_start;
-    
-    // normalize
-    float len_sqr = dot(dir, dir);
-    if (len_sqr < .0001)
-        return 1e9;
-    dir /= sqrt(len_sqr);
-    
-    return dot(
-        dir,
-        p - line_start
-    );
-}
-
-float relative_dist_along_line(vec2 p, vec2 line_start, vec2 line_end)
-{
-    vec2 dir = line_end - line_start;
-    return dot(
-        dir,
-        p - line_start
-    );
-}
-
-// |a| * |b| * sin(theta)
-float cross2d(vec2 a, vec2 b)
-{
-    return a.x * b.y - a.y * b.x;
-}
-
-// references for barycentric coordinates
-// https://www.desmos.com/calculator/8g8xjejuox
-// https://www.shadertoy.com/view/mdjBWK
-
-vec3 cartesian_to_barycentric(
-    vec2 p,
-    vec2 v0,
-    vec2 v1,
-    vec2 v2,
-    bool clamp_,
-    out bool p_is_outside
-)
-{
-    vec3 b = vec3(
-        cross2d(v1 - p, v2 - p),
-        cross2d(v2 - p, v0 - p),
-        cross2d(v0 - p, v1 - p)
-    ) / cross2d(v1 - v0, v2 - v0);
-    p_is_outside = min(min(b.x, b.y), b.z) < 0.;
-    if (clamp_)
-    {
-        b = max(b, 0.);
-        b /= (b.x + b.y + b.z);
-    }
-    return b;
-}
-
-vec3 cartesian_to_barycentric(
-    vec3 p,
-    vec3 v0,
-    vec3 v1,
-    vec3 v2,
-    bool clamp_,
-    out bool p_is_outside
-)
-{
-    vec3 b = vec3(
-        length(cross(v1 - p, v2 - p)),
-        length(cross(v2 - p, v0 - p)),
-        length(cross(v0 - p, v1 - p))
-    ) / length(cross(v1 - v0, v2 - v0));
-    p_is_outside = min(min(b.x, b.y), b.z) < 0.;
-    if (clamp_)
-    {
-        b = max(b, 0.);
-        b /= (b.x + b.y + b.z);
-    }
-    return b;
-}
-
-float barycentric_interpolate(vec3 b, float v0, float v1, float v2)
-{
-    return dot(b, vec3(v0, v1, v2));
-}
-
-vec2 barycentric_interpolate(vec3 b, vec2 v0, vec2 v1, vec2 v2)
-{
-    return b.x * v0 + b.y * v1 + b.z * v2;
-}
-
-vec3 barycentric_interpolate(vec3 b, vec3 v0, vec3 v1, vec3 v2)
-{
-    return b.x * v0 + b.y * v1 + b.z * v2;
-}
-
-vec4 barycentric_interpolate(vec3 b, vec4 v0, vec4 v1, vec4 v2)
-{
-    return b.x * v0 + b.y * v1 + b.z * v2;
-}
-
-float barycentric_interpolate(vec2 b, float v0, float v1, float v2)
-{
-    return barycentric_interpolate(
-        vec3(b.x, b.y, 1. - b.x - b.y),
-        v0, v1, v2
-    );
-}
-
-vec2 barycentric_interpolate(vec2 b, vec2 v0, vec2 v1, vec2 v2)
-{
-    return barycentric_interpolate(
-        vec3(b.x, b.y, 1. - b.x - b.y),
-        v0, v1, v2
-    );
-}
-
-vec3 barycentric_interpolate(vec2 b, vec3 v0, vec3 v1, vec3 v2)
-{
-    return barycentric_interpolate(
-        vec3(b.x, b.y, 1. - b.x - b.y),
-        v0, v1, v2
-    );
-}
-
-vec4 barycentric_interpolate(vec2 b, vec4 v0, vec4 v1, vec4 v2)
-{
-    return barycentric_interpolate(
-        vec3(b.x, b.y, 1. - b.x - b.y),
-        v0, v1, v2
-    );
-}
-
-// angle from 0 to TAU
-float get_angle(vec2 p)
-{
-    float a = atan(p.y, p.x);
-    if (a < 0.)
-    {
-        return a + TAU;
-    }
-    return a;
-}
-
-mat2 rotate_2d(float angle)
-{
-    float s = sin(angle);
-    float c = cos(angle);
-    return mat2(
-        c, s,
-        -s, c
-    );
-}
-
-vec2 perpendicular(vec2 v)
-{
-    return vec2(-v.y, v.x);
-}
-
-// s.x=theta
-// s.y=phi
-// (there's no r)
-vec3 spherical_to_cartesian(vec2 s)
-{
-    float sin_theta = sin(s.x);
-    return vec3(
-        sin_theta * cos(s.y),
-        sin_theta * sin(s.y),
-        cos(s.x)
-    );
-}
-
-// s.x=r
-// s.y=theta
-// s.z=phi
-vec3 spherical_to_cartesian(vec3 s)
-{
-    float sin_theta = sin(s.y);
-    return s.x * vec3(
-        sin_theta * cos(s.z),
-        sin_theta * sin(s.z),
-        cos(s.y)
-    );
-}
-
-vec2 screen_to_uv01(vec2 coord, vec2 res)
-{
-    return coord / res;
-}
-
-vec2 screen_to_uv_horizontal(vec2 coord, vec2 res)
-{
-    return (2. * coord - res) / res.x;
-}
-
-vec2 screen_to_uv_vertical(vec2 coord, vec2 res)
-{
-    return (2. * coord - res) / res.y;
-}
-
-vec2 screen_to_uv_fit(vec2 coord, vec2 res)
-{
-    return (2. * coord - res) / min_component(res);
-}
-
-vec2 screen_to_uv_fill(vec2 coord, vec2 res)
-{
-    return (2. * coord - res) / max_component(res);
-}
-
-// * idx starts at 1
-float halton(int base, int idx)
-{
-    float result = 0.;
-    float digit_weight = 1.;
-    while (idx > 0)
-    {
-        digit_weight /= float(base);
-        result += float(idx % base) * digit_weight;
-        idx /= base;
-    }
-    return result;
-}
-
-// * idx starts at 1
-vec2 halton_2d(int idx)
-{
-    return vec2(halton(2, idx), halton(3, idx));
-}
-
-// * idx starts at 1
-vec3 halton_3d(int idx)
-{
-    return vec3(halton(2, idx), halton(3, idx), halton(5, idx));
-}
-
-// * idx starts at 1
-vec4 halton_4d(int idx)
-{
-    return vec4(
-        halton(2, idx),
-        halton(3, idx),
-        halton(5, idx),
-        halton(7, idx)
-    );
-}
-
-// encode a 32-bit unsigned integer into a float that can be used in a vec4
-// to be stored in a buffer in Shadertoy. use buffer_decode() to undo this.
-//
-// IMPORTANT: 0 <= v <= 4,269,801,471
-// in some implementations, all NaNs and infinity values collapse to a single
-// value regardless of the original bit pattern. this makes it very hard to
-// store arbitrary integers in float buffers. this function automatically jumps
-// across those problematic values to avoid them at the cost of a lower maximum
-// value, so make sure your input doesn't go above it!
-//
-// these are the ranges we need to avoid:
-// 
-// - subnormals
-//   0 -> 8,388,607
-//
-// - positive NaNs and infinity
-//   2,139,095,040 -> 2,147,483,647
-//
-// - negative NaNs and infinity
-//   4,286,578,688 -> 4,294,967,295
-//
-// the last problematic range is already handled since we limit the maximum
-// value.
-//
-// NOTE: Shadertoy appears to be using FP16 buffers in some mobile platforms,
-// but this function is only designed to work with 32-bit values, so it may
-// break in certain machines.
-float buffer_encode(uint v)
-{
-    if (v >= 2130706432u)
-    {
-        return uintBitsToFloat(v + 2u * 8388608u);
-    }
-    return uintBitsToFloat(v + 8388608u);
-}
-
-// decodes integers encoded by buffer_encode()
-uint buffer_decode(float v)
-{
-    uint x = floatBitsToUint(v);
-    if (x >= 2130706432u + 8388608u)
-    {
-        return x - 2u * 8388608u;
-    }
-    return x - 8388608u;
-}
-
-bool icoord_in_bounds(ivec2 icoord, ivec2 ires)
-{
-    return
-        icoord.x >= 0 &&
-        icoord.y >= 0 &&
-        icoord.x < ires.x &&
-        icoord.y < ires.y;
-}
-
-bool icoord_in_bounds(ivec3 icoord, ivec3 ires)
-{
-    return
-        icoord.x >= 0 &&
-        icoord.y >= 0 &&
-        icoord.z >= 0 &&
-        icoord.x < ires.x &&
-        icoord.y < ires.y &&
-        icoord.z < ires.z;
-}
-
-int icoord_to_idx(ivec2 icoord, ivec2 ires)
-{
-    return icoord.x + (icoord.y * ires.x);
-}
-
-int icoord_to_idx(ivec3 icoord, ivec3 ires)
-{
-    return icoord.x + (icoord.y * ires.x) + (icoord.z * ires.x * ires.y);
-}
-
-ivec2 idx_to_icoord(int idx, ivec2 ires)
-{
-    return ivec2(idx % ires.x, idx / ires.x);
-}
-
-ivec3 idx_to_icoord(int idx, ivec3 ires)
-{
-    return ivec3(
-        idx % ires.x,
-        (idx % (ires.x * ires.y)) / ires.x,
-        idx / (ires.x * ires.y)
-    );
-}
-
-// https://www.desmos.com/calculator/kfe07basy9
-
-uint compress_float_to_uint_linear(float f, float min_f, float max_f, uint max_i)
-{
-    return uint(floor(
-        float(max_i) * remap01(f, min_f, max_f)
-    ));
-}
-
-float decompress_float_from_uint_linear(
-    uint i,
-    uint max_i,
-    float min_f,
-    float max_f
-)
-{
-    return remap_clamp(
-        float(i) / float(max_i),
-        0., 1.,
-        min_f, max_f
-    );
-}
-
-uint compress_float_to_uint_log(
-    float f,
-    float log2_zero_offset,
-    float max_log2_f,
-    uint max_i
-)
-{
-    f = max(0., f);
-    f += pow(2., log2_zero_offset);
-    return uint(floor(
-        float(max_i) * remap01(log2(f), log2_zero_offset, max_log2_f)
-    ));
-}
-
-float decompress_float_from_uint_log(
-    uint i,
-    uint max_i,
-    float log2_zero_offset,
-    float max_log2_f
-)
-{
-    return pow(2., remap_clamp(
-        float(i) / float(max_i),
-        0., 1.,
-        log2_zero_offset, max_log2_f
-    )) - pow(2., log2_zero_offset);
-}
-
-
+in vec2 v_uv;
+out vec4 out_color;
+
+// tile
+uniform vec2 tile_size; // px
+uniform float border_thickness; // px
+
+// grid lines
+uniform float grid_lines_density;
+uniform float grid_lines_thickness; // px
+uniform float grid_lines_opacity_horizontal;
+uniform float grid_lines_opacity_vertical;
+
+// masjad
+uniform float masjad_position; // 0 = top, 1 = bottom
+uniform float masjad_radius; // relative to tile size
+
+// feet
+uniform float feet_vertical_position; // 0 = bottom, 1 = top
+uniform float feet_horizontal_distance; // relative to tile size
+uniform vec2 feet_size; // relative to tile size
+uniform float feet_thickness; // px
+uniform float feet_opacity;
+
+// transform
+uniform vec2 transform_scale;
+uniform vec2 transform_skew;
+uniform float transform_rotation; // degrees
+uniform vec2 transform_offset; // px
+
+// colors
+uniform vec3 background_color;
+uniform vec3 pattern_color;
 
 /*__________ hash function collection _________*/
 // sources: https://nullprogram.com/blog/2018/07/31/
@@ -805,8 +205,21 @@ uint hash(vec4 v)
 // any -> float
 #define hashf(v) (float(hash(v)) / 4294967295.)
 
+/*____________________ end ____________________*/
 
+#define inv_step(a, b) (step(b, a))
 
+mat2 rotate_2d(float angle)
+{
+    float s = sin(angle);
+    float c = cos(angle);
+    return mat2(
+        c, s,
+        -s, c
+    );
+}
+
+// ellipse signed distance
 // source: https://www.shadertoy.com/view/4sS3zz
 float msign(in float x) { return (x<0.0)?-1.0:1.0; }
 float sd_ellipse(vec2 p, vec2 ab)
@@ -853,42 +266,6 @@ float sd_ellipse(vec2 p, vec2 ab)
 	
     return length(r-p) * msign(p.y-r.y);
 }
-
-
-
-in vec2 v_uv;
-out vec4 out_color;
-
-// tile
-const vec2 tile_size = vec2(200, 400); // px
-const float border_thickness = 3.; // px
-
-// grid lines
-const float grid_lines_density = 210.;
-const float grid_lines_thickness = 1.; // px
-const float grid_lines_opacity_horizontal = .05;
-const float grid_lines_opacity_vertical = .05;
-
-// masjad
-const float masjad_position = .125; // 0 = top, 1 = bottom
-const float masjad_radius = .05; // relative to tile size
-
-// feet
-const float feet_vertical_position = .2; // 0 = bottom, 1 = top
-const float feet_horizontal_distance = .12; // relative to tile size
-const vec2 feet_size = vec2(.05, .13); // relative to tile size
-const float feet_thickness = 1.; // px
-const float feet_opacity = .2;
-
-// transform
-const vec2 transform_scale = vec2(1.);
-const vec2 transform_skew = vec2(0);
-const float transform_rotation = 0.; // degrees
-const vec2 transform_offset = vec2(0); // px
-
-// colors
-const vec3 background_color = vec3(0);
-const vec3 pattern_color = vec3(1);
 
 vec3 render(vec2 coord, vec2 res)
 {
@@ -1056,6 +433,40 @@ void main()
     const program = create_program(vertex_source, fragment_source);
     _state.gl.useProgram(program);
 
+    // set uniforms
+    {
+        // tile
+        set_uniform(program, "tile_size", "2f", _params.tile_size);
+        set_uniform(program, "border_thickness", "1f", _params.border_thickness);
+
+        // grid lines
+        set_uniform(program, "grid_lines_density", "1f", _params.grid_lines_density);
+        set_uniform(program, "grid_lines_thickness", "1f", _params.grid_lines_thickness);
+        set_uniform(program, "grid_lines_opacity_horizontal", "1f", _params.grid_lines_opacity_horizontal);
+        set_uniform(program, "grid_lines_opacity_vertical", "1f", _params.grid_lines_opacity_vertical);
+
+        // masjad
+        set_uniform(program, "masjad_position", "1f", _params.masjad_position);
+        set_uniform(program, "masjad_radius", "1f", _params.masjad_radius);
+
+        // feet
+        set_uniform(program, "feet_vertical_position", "1f", _params.feet_vertical_position);
+        set_uniform(program, "feet_horizontal_distance", "1f", _params.feet_horizontal_distance);
+        set_uniform(program, "feet_size", "2f", _params.feet_size);
+        set_uniform(program, "feet_thickness", "1f", _params.feet_thickness);
+        set_uniform(program, "feet_opacity", "1f", _params.feet_opacity);
+
+        // transform
+        set_uniform(program, "transform_scale", "2f", _params.transform_scale);
+        set_uniform(program, "transform_skew", "2f", _params.transform_skew);
+        set_uniform(program, "transform_rotation", "1f", _params.transform_rotation);
+        set_uniform(program, "transform_offset", "2f", _params.transform_offset);
+
+        // colors
+        set_uniform(program, "background_color", "3f", _params.background_color);
+        set_uniform(program, "pattern_color", "3f", _params.pattern_color);
+    }
+
     // fullscreen quad [-1, -1] to [1, 1]
     const quad_verts = new Float32Array([
         -1, -1,
@@ -1123,4 +534,38 @@ function create_program(vertex_source, fragment_source) {
     }
 
     return program;
+}
+
+// example dimensions: 1f (float), 3i (ivec3), basically the suffix after
+// "gl.uniform".
+function set_uniform(program, name, dimensions, value) {
+    const location = _state.gl.getUniformLocation(program, name);
+    if (!location) {
+        return false;
+    }
+
+    if (!_state.gl[`uniform${dimensions}`]) {
+        throw new RangeError(
+            `invalid dimensions for shader uniform: "${dimensions}"`
+        );
+    }
+
+    if (dimensions[0] === '1') {
+        _state.gl[`uniform${dimensions}`](location, value);
+    }
+    else if (dimensions[0] === '2') {
+        _state.gl[`uniform${dimensions}`](location, value[0], value[1]);
+    }
+    else if (dimensions[0] === '3') {
+        _state.gl[`uniform${dimensions}`](location, value[0], value[1], value[2]);
+    }
+    else if (dimensions[0] === '4') {
+        _state.gl[`uniform${dimensions}`](location, value[0], value[1], value[2], value[3]);
+    }
+    else {
+        throw new RangeError(
+            `invalid dimensions for shader uniform: "${dimensions}"`
+        );
+    }
+    return true;
 }
