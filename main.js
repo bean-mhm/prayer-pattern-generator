@@ -35,9 +35,10 @@ _params = {
 function init_canvas() {
     _state.canvas_ready = false;
 
-    const canvas = document.getElementById("canvas");
-    const gl = canvas.getContext("webgl2");
-    if (gl) {
+    // try to get WebGL2 context
+    _state.canvas = document.getElementById("canvas");
+    _state.gl = _state.canvas.getContext("webgl2");
+    if (_state.gl) {
         document.getElementById("error-message").style.visibility = "collapse";
     }
     else {
@@ -45,26 +46,15 @@ function init_canvas() {
         return;
     }
 
+    // viewport resolution
     const dpr = window.devicePixelRatio || 1;
-    canvas.width = Math.floor(document.body.clientWidth * dpr);
-    canvas.height = Math.floor(document.body.clientHeight * dpr);
-    gl.viewport(0, 0, canvas.width, canvas.height);
+    _state.canvas.width = Math.floor(document.body.clientWidth * dpr);
+    _state.canvas.height = Math.floor(document.body.clientHeight * dpr);
+    _state.gl.viewport(0, 0, canvas.width, canvas.height);
 
-    canvas.style.width = `${Math.floor(canvas.width / dpr)}px`;
-    canvas.style.height = `${Math.floor(canvas.height / dpr)}px`;
-
-    _state.canvas = canvas;
-    _state.gl = gl;
-    _state.canvas_ready = true;
-
-    render();
-}
-
-function render() {
-    if (_state.canvas_ready !== true) {
-        console.log("can't render because canvas is not ready.");
-        return;
-    }
+    // high DPI nonsense
+    _state.canvas.style.width = `${Math.floor(_state.canvas.width / dpr)}px`;
+    _state.canvas.style.height = `${Math.floor(_state.canvas.height / dpr)}px`;
 
     // vertex shader
     const vertex_source = `#version 300 es
@@ -429,43 +419,8 @@ void main()
 }
 `;
 
-    // create program
-    const program = create_program(vertex_source, fragment_source);
-    _state.gl.useProgram(program);
-
-    // set uniforms
-    {
-        // tile
-        set_uniform(program, "tile_size", "2f", _params.tile_size);
-        set_uniform(program, "border_thickness", "1f", _params.border_thickness);
-
-        // grid lines
-        set_uniform(program, "grid_lines_density", "1f", _params.grid_lines_density);
-        set_uniform(program, "grid_lines_thickness", "1f", _params.grid_lines_thickness);
-        set_uniform(program, "grid_lines_opacity_horizontal", "1f", _params.grid_lines_opacity_horizontal);
-        set_uniform(program, "grid_lines_opacity_vertical", "1f", _params.grid_lines_opacity_vertical);
-
-        // masjad
-        set_uniform(program, "masjad_position", "1f", _params.masjad_position);
-        set_uniform(program, "masjad_radius", "1f", _params.masjad_radius);
-
-        // feet
-        set_uniform(program, "feet_vertical_position", "1f", _params.feet_vertical_position);
-        set_uniform(program, "feet_horizontal_distance", "1f", _params.feet_horizontal_distance);
-        set_uniform(program, "feet_size", "2f", _params.feet_size);
-        set_uniform(program, "feet_thickness", "1f", _params.feet_thickness);
-        set_uniform(program, "feet_opacity", "1f", _params.feet_opacity);
-
-        // transform
-        set_uniform(program, "transform_scale", "2f", _params.transform_scale);
-        set_uniform(program, "transform_skew", "2f", _params.transform_skew);
-        set_uniform(program, "transform_rotation", "1f", _params.transform_rotation);
-        set_uniform(program, "transform_offset", "2f", _params.transform_offset);
-
-        // colors
-        set_uniform(program, "background_color", "3f", _params.background_color);
-        set_uniform(program, "pattern_color", "3f", _params.pattern_color);
-    }
+    // create graphics program (pipeline)
+    _state.program = create_program(vertex_source, fragment_source);
 
     // fullscreen quad [-1, -1] to [1, 1]
     const quad_verts = new Float32Array([
@@ -477,22 +432,74 @@ void main()
         1, 1
     ]);
 
-    // buffer
-    const vbo = _state.gl.createBuffer();
-    if (!vbo) {
+    // create vertex buffer object (VBO)
+    _state.vbo = _state.gl.createBuffer();
+    if (!_state.vbo) {
         throw new Error("failed to create empty buffer");
     }
-    _state.gl.bindBuffer(_state.gl.ARRAY_BUFFER, vbo);
+    _state.gl.bindBuffer(_state.gl.ARRAY_BUFFER, _state.vbo);
     _state.gl.bufferData(
         _state.gl.ARRAY_BUFFER,
         quad_verts,
         _state.gl.STATIC_DRAW
     );
 
-    // attribute
-    const posLoc = _state.gl.getAttribLocation(program, "a_position");
-    _state.gl.enableVertexAttribArray(posLoc);
-    _state.gl.vertexAttribPointer(posLoc, 2, _state.gl.FLOAT, false, 0, 0);
+    // define vertex attributes layout in the VBO
+    const position_loc = _state.gl.getAttribLocation(_state.program, "a_position");
+    _state.gl.enableVertexAttribArray(position_loc);
+    _state.gl.vertexAttribPointer(position_loc, 2, _state.gl.FLOAT, false, 0, 0);
+
+    // update state
+    _state.canvas_ready = true;
+
+    render();
+}
+
+function render() {
+    if (_state.canvas_ready !== true) {
+        console.log("can't render because canvas is not ready.");
+        return;
+    }
+
+    // bind graphics program (pipeline)
+    _state.gl.useProgram(_state.program);
+
+    // set uniforms
+    {
+        // tile
+        set_uniform(_state.program, "tile_size", "2f", _params.tile_size);
+        set_uniform(_state.program, "border_thickness", "1f", _params.border_thickness);
+
+        // grid lines
+        set_uniform(_state.program, "grid_lines_density", "1f", _params.grid_lines_density);
+        set_uniform(_state.program, "grid_lines_thickness", "1f", _params.grid_lines_thickness);
+        set_uniform(_state.program, "grid_lines_opacity_horizontal", "1f", _params.grid_lines_opacity_horizontal);
+        set_uniform(_state.program, "grid_lines_opacity_vertical", "1f", _params.grid_lines_opacity_vertical);
+
+        // masjad
+        set_uniform(_state.program, "masjad_position", "1f", _params.masjad_position);
+        set_uniform(_state.program, "masjad_radius", "1f", _params.masjad_radius);
+
+        // feet
+        set_uniform(_state.program, "feet_vertical_position", "1f", _params.feet_vertical_position);
+        set_uniform(_state.program, "feet_horizontal_distance", "1f", _params.feet_horizontal_distance);
+        set_uniform(_state.program, "feet_size", "2f", _params.feet_size);
+        set_uniform(_state.program, "feet_thickness", "1f", _params.feet_thickness);
+        set_uniform(_state.program, "feet_opacity", "1f", _params.feet_opacity);
+
+        // transform
+        set_uniform(_state.program, "transform_scale", "2f", _params.transform_scale);
+        set_uniform(_state.program, "transform_skew", "2f", _params.transform_skew);
+        set_uniform(_state.program, "transform_rotation", "1f", _params.transform_rotation);
+        set_uniform(_state.program, "transform_offset", "2f", _params.transform_offset);
+
+        // colors
+        set_uniform(_state.program, "background_color", "3f", _params.background_color);
+        set_uniform(_state.program, "pattern_color", "3f", _params.pattern_color);
+    }
+
+    // bind VBO
+    _state.gl.bindBuffer(_state.gl.ARRAY_BUFFER, _state.vbo);
 
     // draw
     _state.gl.clearColor(0, 0, 0, 1);
