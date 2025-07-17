@@ -76,6 +76,9 @@ precision highp int;
 in vec2 v_uv;
 out vec4 out_color;
 
+// render resolution
+uniform vec2 res;
+
 // tile
 uniform vec2 tile_size; // px
 uniform float border_thickness; // px
@@ -257,7 +260,7 @@ float sd_ellipse(vec2 p, vec2 ab)
     return length(r-p) * msign(p.y-r.y);
 }
 
-vec3 render(vec2 coord, vec2 res)
+vec3 render(vec2 coord)
 {
     // center coord
     coord -= (res * .5);
@@ -392,9 +395,8 @@ vec3 view_transform(vec3 col)
 
 void main()
 {
-    // get current pixel position and the resolution
+    // current pixel position
     vec2 frag_coord = gl_FragCoord.xy;
-    vec2 res = frag_coord / v_uv;
 
     // render (average multiple samples)
     vec3 col = vec3(0);
@@ -406,10 +408,7 @@ void main()
             hashf(ivec2(i, 20))
         ) - .5;
         
-        col += render(
-            frag_coord + offs,
-            res
-        );
+        col += render(frag_coord + offs);
     }
     col /= float(N_SAMPLES);
     
@@ -466,6 +465,9 @@ function render() {
 
     // set uniforms
     {
+        // render resolution
+        set_uniform(_state.program, "res", "2f", [_state.canvas.width, _state.canvas.height]);
+
         // tile
         set_uniform(_state.program, "tile_size", "2f", _params.tile_size);
         set_uniform(_state.program, "border_thickness", "1f", _params.border_thickness);
