@@ -137,6 +137,8 @@ FUNC_DIST_SQ(vec2)
 FUNC_DIST_SQ(vec3)
 FUNC_DIST_SQ(vec4)
 
+#define inv_step(a, b) (step(b, a))
+
 float chebyshev_dist(vec2 a, vec2 b)
 {
     return max(abs(a.x - b.x), abs(a.y - b.y));
@@ -879,9 +881,10 @@ const float feet_thickness = 1.; // px
 const float feet_opacity = .2;
 
 // transform
-const vec2 transform_scale = vec2(1);
+const vec2 transform_scale = vec2(1.);
+const vec2 transform_skew = vec2(0);
 const float transform_rotation = 0.; // degrees
-const vec2 transform_offset = vec2(0);
+const vec2 transform_offset = vec2(0); // px
 
 // colors
 const vec3 background_color = vec3(0);
@@ -892,9 +895,11 @@ vec3 render(vec2 coord, vec2 res)
     // center coord
     coord -= (res * .5);
 
-    // transform
+    // transform (remember RORO: reverse order, reverse operation)
     coord -= transform_offset;
     coord *= rotate_2d(radians(transform_rotation));
+    coord.x -= transform_skew.x * coord.y;
+    coord.y -= transform_skew.y * coord.x;
     coord /= transform_scale;
 
     // 2D index of the current tile
@@ -911,24 +916,16 @@ vec3 render(vec2 coord, vec2 res)
     // border
     {
         float half_thickness = border_thickness * .5;
+        float half_tile_w = tile_size.x * .5;
+        float half_tile_h = tile_size.y * .5;
         v = max(
-            remap01(tile_coord.x, half_thickness + .5, half_thickness - .5),
-            remap01(
-                tile_coord.x,
-                tile_size.x - half_thickness - .5,
-                tile_size.x - half_thickness + .5
-            )
-        );
-        v = max(
-            v,
-            remap01(tile_coord.y, half_thickness + .5, half_thickness - .5)
-        );
-        v = max(
-            v,
-            remap01(
-                tile_coord.y,
-                tile_size.y - half_thickness - .5,
-                tile_size.y - half_thickness + .5
+            inv_step(
+                abs(tile_coord.x - half_tile_w),
+                half_tile_w - half_thickness
+            ),
+            inv_step(
+                abs(tile_coord.y - half_tile_h),
+                half_tile_h - half_thickness
             )
         );
     }
@@ -950,24 +947,24 @@ vec3 render(vec2 coord, vec2 res)
             tile_size / vec2(grid_lines_res_x, grid_lines_res_y);
 
         float half_thickness = grid_lines_thickness * .5;
+        float half_cell_w = grid_cell_size.x * .5;
+        float half_cell_h = grid_cell_size.y * .5;
 
         // vertical lines
         v = max(
             v,
-            remap01(
-                abs(mod(tile_coord.x, grid_cell_size.x) - grid_cell_size.x * .5),
-                half_thickness + .5,
-                half_thickness - .5
+            inv_step(
+                abs(mod(tile_coord.x, grid_cell_size.x) - half_cell_w),
+                half_cell_w - half_thickness
             ) * grid_lines_opacity_vertical
         );
 
         // horizontal lines
         v = max(
             v,
-            remap01(
-                abs(mod(tile_coord.y, grid_cell_size.y) - grid_cell_size.y * .5),
-                half_thickness + .5,
-                half_thickness - .5
+            inv_step(
+                abs(mod(tile_coord.y, grid_cell_size.y) - half_cell_h),
+                half_cell_h - half_thickness
             ) * grid_lines_opacity_horizontal
         );
     }
@@ -981,7 +978,7 @@ vec3 render(vec2 coord, vec2 res)
         float circle_radius = masjad_radius * overall_scale;
 
         float sd = distance(tile_coord, circle_center) - circle_radius;
-        v = max(v, remap01(sd, .5, -.5));
+        v = max(v, step(sd, 0.));
     }
 
     // feet
@@ -1009,7 +1006,7 @@ vec3 render(vec2 coord, vec2 res)
             )) - feet_thickness
         );
 
-        v = max(v, remap01(sd, .5, -.5) * feet_opacity);
+        v = max(v, step(sd, 0.) * feet_opacity);
     }
 
     // colorize and return
@@ -1034,12 +1031,20 @@ void main()
 
     // render (average multiple samples)
     vec3 col = vec3(0);
-    col += render(frag_coord, res);
-    col += render(frag_coord + vec2(.51, .53), res);
-    col += render(frag_coord + vec2(-.5, .48), res);
-    col += render(frag_coord + vec2(-.47, -.54), res);
-    col += render(frag_coord + vec2(.52, -.49), res);
-    col /= 5.;
+    const int N_SAMPLES = 32;
+    for (int i = 0; i < N_SAMPLES; i++)
+    {
+        vec2 offs = vec2(
+            hashf(ivec2(i, 10)),
+            hashf(ivec2(i, 20))
+        ) - .5;
+        
+        col += render(
+            frag_coord + offs,
+            res
+        );
+    }
+    col /= float(N_SAMPLES);
     
     // output
     col = view_transform(col);
