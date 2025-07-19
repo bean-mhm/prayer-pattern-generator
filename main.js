@@ -1,13 +1,44 @@
+class Param {
+
+    constructor(id, name, value) {
+        this.id = id;
+        this.name = name;
+        this.value = value;
+    }
+
+}
+
+class ParamList {
+
+    constructor() {
+        this.params = [];
+    }
+
+    add(param) {
+        this.params.push(param);
+    }
+
+    get(id) {
+        for (const param of this.params) {
+            if (param.id === id) {
+                return param;
+            }
+        }
+        throw new Error(`no parameter found with this id (${id})`);
+    }
+
+}
+
 _state = {};
 _params = {
     // tile
-    tile_size: [200., 400], // px
+    tile_size: [200., 400.], // px
     border_thickness: 3., // px
 
     // grid lines
-    grid_lines_density: 210.,
+    grid_lines_density: 200.,
     grid_lines_thickness: 1., // px
-    grid_lines_opacity_horizontal: .05,
+    grid_lines_opacity_horizontal: 0.,
     grid_lines_opacity_vertical: .05,
 
     // masjad
@@ -28,9 +59,80 @@ _params = {
     transform_offset: [0., 0.], // px
 
     // colors
-    background_color: [0., 0., 0.],
-    pattern_color: [1., 1., 1.]
+    background_color_hsv: [0., 0., 0.],
+    pattern_color_hsv: [0., 0., 1.]
 };
+_default_params = Object.assign({}, _params);
+
+function reset_params() {
+    _params = Object.assign({}, _default_params);
+    render();
+}
+
+function read_param_value(param_name, param_index = -1, element_id = null) {
+    let elem = null;
+    if (!element_id || element_id.length < 1) {
+        elem = document.getElementById(param_name)
+    }
+    else {
+        elem = document.getElementById(element_id);
+    }
+
+    if (!elem) {
+        return;
+    }
+
+    if (param_index < 0) {
+        _params[param_name] = elem.value;
+    } else {
+        _params[param_name][param_index] = elem.value;
+    }
+}
+
+function params_changed() {
+    read_param_value("tile_size", 0, "tile_size_x");
+    read_param_value("tile_size", 1, "tile_size_y");
+    read_param_value("border_thickness");
+
+    read_param_value("grid_lines_density");
+    read_param_value("grid_lines_thickness");
+    read_param_value("grid_lines_opacity_horizontal");
+    read_param_value("grid_lines_opacity_vertical");
+
+    read_param_value("masjad_position");
+    read_param_value("masjad_radius");
+
+    read_param_value("feet_vertical_position");
+    read_param_value("feet_horizontal_distance");
+    read_param_value("feet_size", 0, "feet_size_x");
+    read_param_value("feet_size", 1, "feet_size_y");
+    read_param_value("feet_thickness");
+    read_param_value("feet_opacity");
+
+    read_param_value("transform_scale", 0, "transform_scale_x");
+    read_param_value("transform_scale", 1, "transform_scale_y");
+    read_param_value("transform_skew", 0, "transform_skew_x");
+    read_param_value("transform_skew", 1, "transform_skew_y");
+    read_param_value("transform_rotation");
+    read_param_value("transform_offset", 0, "transform_offset_x");
+    read_param_value("transform_offset", 1, "transform_offset_y");
+
+    read_param_value("background_color_hsv", 0, "background_color_h");
+    read_param_value("background_color_hsv", 1, "background_color_s");
+    read_param_value("background_color_hsv", 2, "background_color_v");
+    read_param_value("pattern_color_hsv", 0, "pattern_color_h");
+    read_param_value("pattern_color_hsv", 1, "pattern_color_s");
+    read_param_value("pattern_color_hsv", 2, "pattern_color_v");
+
+    let background_color = view_transform(hsv_to_rgb(_params.background_color_hsv));
+    let pattern_color = view_transform(hsv_to_rgb(_params.pattern_color_hsv));
+    document.getElementById("background_color_blob").style.backgroundColor =
+        `rgb(${background_color.join(", ")})`;
+    document.getElementById("pattern_color_blob").style.backgroundColor =
+        `rgb(${pattern_color.join(", ")})`;
+
+    render();
+}
 
 function init_canvas() {
     _state.canvas_ready = false;
@@ -213,11 +315,17 @@ mat2 rotate_2d(float angle)
 }
 
 // ellipse signed distance
-// source: https://www.shadertoy.com/view/4sS3zz
+// source (minor tweaks): https://www.shadertoy.com/view/4sS3zz
 float msign(in float x) { return (x<0.0)?-1.0:1.0; }
 float sd_ellipse(vec2 p, vec2 ab)
 {
   //if( ab.x==ab.y ) return length(p)-ab.x;
+
+    float aspect_ratio = ab.y / ab.x;
+    if (abs(aspect_ratio - 1.) < .001)
+    {
+        return length(p) - ab.x;
+    }
 
 	p = abs( p ); 
     if( p.x>p.y ){ p=p.yx; ab=ab.yx; }
@@ -267,7 +375,7 @@ vec3 render(vec2 coord)
 
     // transform (remember RORO: reverse order, reverse operation)
     coord -= transform_offset;
-    coord *= rotate_2d(radians(transform_rotation));
+    coord *= rotate_2d(-radians(transform_rotation));
     coord.x -= transform_skew.x * coord.y;
     coord.y -= transform_skew.y * coord.x;
     coord /= transform_scale;
@@ -363,16 +471,16 @@ vec3 render(vec2 coord)
             tile_size.y * feet_vertical_position
         );
 
-        vec2 ellipse_dimensions = feet_size * overall_scale;
+        vec2 ellipse_radius = feet_size * overall_scale;
 
         float sd = min(
             abs(sd_ellipse(
                 tile_coord - left_ellipse_center,
-                ellipse_dimensions
+                ellipse_radius
             )) - feet_thickness,
             abs(sd_ellipse(
                 tile_coord - right_ellipse_center,
-                ellipse_dimensions
+                ellipse_radius
             )) - feet_thickness
         );
 
@@ -451,7 +559,7 @@ void main()
     // update state
     _state.canvas_ready = true;
 
-    render();
+    params_changed();
 }
 
 function render() {
@@ -496,8 +604,10 @@ function render() {
         set_uniform(_state.program, "transform_offset", "2f", _params.transform_offset);
 
         // colors
-        set_uniform(_state.program, "background_color", "3f", _params.background_color);
-        set_uniform(_state.program, "pattern_color", "3f", _params.pattern_color);
+        let background_color = hsv_to_rgb(_params.background_color_hsv);
+        let pattern_color = hsv_to_rgb(_params.pattern_color_hsv);
+        set_uniform(_state.program, "background_color", "3f", background_color);
+        set_uniform(_state.program, "pattern_color", "3f", pattern_color);
     }
 
     // bind VBO
@@ -577,4 +687,32 @@ function set_uniform(program, name, dimensions, value) {
         );
     }
     return true;
+}
+
+function clamp01(v) {
+    return Math.min(Math.max(v, 0.), 1.);
+}
+
+function view_transform(rgb) {
+    return rgb.map(v => Math.round(255. * Math.pow(clamp01(v), 1. / 2.2)));
+}
+
+// source (minor tweaks): https://stackoverflow.com/a/17243070
+function hsv_to_rgb(hsv) {
+    let h = clamp01(hsv[0]), s = clamp01(hsv[1]), v = clamp01(hsv[2]);
+    let r = 0, g = 0, b = 0;
+    let i = Math.floor(h * 6);
+    let f = h * 6 - i;
+    let p = v * (1 - s);
+    let q = v * (1 - f * s);
+    let t = v * (1 - (1 - f) * s);
+    switch (i % 6) {
+        case 0: r = v, g = t, b = p; break;
+        case 1: r = q, g = v, b = p; break;
+        case 2: r = p, g = v, b = t; break;
+        case 3: r = p, g = q, b = v; break;
+        case 4: r = t, g = p, b = v; break;
+        case 5: r = v, g = p, b = q; break;
+    }
+    return [r, g, b];
 }

@@ -7,16 +7,61 @@
   --font-family: Rubik, system-ui, sans-serif;
   --font-size: 20px;
 
+  --accent-color: #6251ff;
+
+  --accent-color-l-10: color-mix(in oklab, var(--accent-color), white 10%);
+  --accent-color-l-15: color-mix(in oklab, var(--accent-color), white 15%);
+  --accent-color-l-20: color-mix(in oklab, var(--accent-color), white 20%);
+  --accent-color-l-30: color-mix(in oklab, var(--accent-color), white 30%);
+  --accent-color-l-40: color-mix(in oklab, var(--accent-color), white 40%);
+  --accent-color-l-50: color-mix(in oklab, var(--accent-color), white 50%);
+  --accent-color-l-60: color-mix(in oklab, var(--accent-color), white 60%);
+  --accent-color-l-70: color-mix(in oklab, var(--accent-color), white 70%);
+  --accent-color-l-80: color-mix(in oklab, var(--accent-color), white 80%);
+  --accent-color-l-90: color-mix(in oklab, var(--accent-color), white 90%);
+
+  --accent-color-d-10: color-mix(in oklab, var(--accent-color), black 10%);
+  --accent-color-d-15: color-mix(in oklab, var(--accent-color), black 15%);
+  --accent-color-d-20: color-mix(in oklab, var(--accent-color), black 20%);
+  --accent-color-d-30: color-mix(in oklab, var(--accent-color), black 30%);
+  --accent-color-d-40: color-mix(in oklab, var(--accent-color), black 40%);
+  --accent-color-d-50: color-mix(in oklab, var(--accent-color), black 50%);
+  --accent-color-d-60: color-mix(in oklab, var(--accent-color), black 60%);
+  --accent-color-d-70: color-mix(in oklab, var(--accent-color), black 70%);
+  --accent-color-d-80: color-mix(in oklab, var(--accent-color), black 80%);
+  --accent-color-d-90: color-mix(in oklab, var(--accent-color), black 90%);
+
+  --accent-color-t-10: rgb(from var(--accent-color) r g b / 10%);
+  --accent-color-t-15: rgb(from var(--accent-color) r g b / 15%);
+  --accent-color-t-20: rgb(from var(--accent-color) r g b / 20%);
+  --accent-color-t-30: rgb(from var(--accent-color) r g b / 30%);
+  --accent-color-t-40: rgb(from var(--accent-color) r g b / 40%);
+  --accent-color-t-50: rgb(from var(--accent-color) r g b / 50%);
+  --accent-color-t-60: rgb(from var(--accent-color) r g b / 60%);
+  --accent-color-t-70: rgb(from var(--accent-color) r g b / 70%);
+  --accent-color-t-80: rgb(from var(--accent-color) r g b / 80%);
+  --accent-color-t-90: rgb(from var(--accent-color) r g b / 90%);
+
+  --gray-0: black;
+  --gray-10: hsl(0, 0%, 10%);
+  --gray-15: hsl(0, 0%, 15%);
+  --gray-20: hsl(0, 0%, 20%);
+  --gray-30: hsl(0, 0%, 30%);
+  --gray-40: hsl(0, 0%, 40%);
+  --gray-50: hsl(0, 0%, 50%);
+  --gray-60: hsl(0, 0%, 60%);
+  --gray-70: hsl(0, 0%, 70%);
+  --gray-80: hsl(0, 0%, 80%);
+  --gray-90: hsl(0, 0%, 90%);
+  --gray-100: white;
+
+  --translucent-dark: #26262650;
+  --translucent-light: #cccccc50;
+
   --bg-color: rgb(0, 0, 0);
   --text-color: #f2f2f2;
 
-  --selection-color: #5342ec77;
-
-  --scrollbar-fg-color: #5342ec;
-  --scrollbar-bg-color: #1d1f3b;
-
-  --link-color: #5342ec;
-  --link-color-hover: color-mix(in oklab, var(--link-color), white 25%);
+  --transition-time: 0.15s;
 }
 
 @media only screen and (max-width: 720px) {
@@ -50,19 +95,19 @@
 }
 
 ::selection {
-  background-color: var(--selection-color);
+  background-color: var(--accent-color-t-40);
 }
 
 ::-moz-selection {
-  background-color: var(--selection-color);
+  background-color: var(--accent-color-t-40);
 }
 
 ::-ms-selection {
-  background-color: var(--selection-color);
+  background-color: var(--accent-color-t-40);
 }
 
 ::-webkit-selection {
-  background-color: var(--selection-color);
+  background-color: var(--accent-color-t-40);
 }
 
 body {
@@ -76,6 +121,8 @@ body {
 
   font-family: var(--font-family);
   font-size: var(--font-size);
+  line-height: 1.15em;
+  word-spacing: 0.05em;
 
   background-color: var(--bg-color);
   color: var(--text-color);
@@ -91,7 +138,7 @@ body {
   overflow-x: hidden;
   overflow-y: scroll;
 
-  scrollbar-color: var(--scrollbar-fg-color) var(--scrollbar-bg-color);
+  scrollbar-color: var(--accent-color) var(--accent-color-d-80);
   scrollbar-width: 4px;
 }
 
@@ -156,12 +203,12 @@ body {
 }
 
 a {
-  color: var(--link-color);
+  color: var(--accent-color);
   text-decoration: none;
 }
 
 a:hover {
-  color: var(--link-color-hover);
+  color: var(--accent-color-l-10);
   text-decoration: underline;
 }
 
@@ -182,9 +229,6 @@ h4,
 h5,
 h6,
 p {
-  margin-top: 1em;
-  margin-bottom: 1em;
-
   line-height: 1.15em;
   word-spacing: 0.05em;
 }
@@ -228,14 +272,47 @@ strong {
   font-weight: bolder;
 }
 
+br {
+  display: block;
+  width: 100%;
+  height: 0;
+  margin: 1em 0 1em 0;
+}
+
+button {
+  display: inline-block;
+  width: 100%;
+  padding: 1.2rem 1rem;
+  border: none;
+  border-radius: 1000rem;
+  cursor: pointer;
+
+  text-align: center;
+  text-decoration: none;
+  font-size: 1.3rem;
+  font-family: var(--font-family);
+
+  background-color: var(--accent-color);
+  color: var(--text-color);
+
+  transition: var(--transition-time);
+}
+
+button:hover {
+  background-color: var(--accent-color-l-10);
+}
+
+button:active {
+  background-color: var(--accent-color-d-10);
+  transform: scale(0.98);
+}
+
 .dim {
   opacity: 0.8;
-  font-family: var(--default-fonts);
 }
 
 .dimmer {
   opacity: 0.6;
-  font-family: var(--default-fonts);
 }
 
 .small {
@@ -255,22 +332,130 @@ strong {
   align-self: center;
 }
 
+.dummy {
+  display: none;
+  visibility: collapse;
+  margin: 0;
+  padding: 0;
+  width: 0;
+  height: 0;
+}
+
 .article {
   align-self: center;
 
   width: 60rem;
   max-width: 98vw;
 
-  padding: 2em 2.2em 2em 2.2em;
+  padding: 2.8em 2.2em 3.2em 2.2em;
   box-sizing: border-box;
 
   border-radius: 1em;
-  background-color: rgba(33, 33, 33, 0.8);
+  background-color: var(--gray-10);
+
+  opacity: 0.95;
 }
 
-.br {
-  display: block;
-  width: 100%;
-  height: 0;
-  margin: 1rem 0 1rem 0;
+.article>* {
+  margin-top: 1em;
+  margin-bottom: 1em;
+}
+
+.article>*:first-child {
+  margin-top: 0;
+}
+
+.article>*:last-child {
+  margin-bottom: 0;
+}
+
+.control-container {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.control-label {
+  display: inline-block;
+  min-width: 25%;
+  max-width: 50%;
+  margin-inline-end: 1rem;
+}
+
+.control {
+  flex-basis: 100%;
+  flex-shrink: 10000;
+}
+
+input[type="range"] {
+  height: 1.4rem;
+  border-radius: 100rem;
+  outline: none;
+  cursor: grab;
+  appearance: none;
+
+  background: var(--gray-15);
+  transition: var(--transition-time);
+}
+
+input[type="range"]:hover {
+  background: var(--gray-20);
+}
+
+input[type="range"]:active {
+  cursor: grabbing;
+}
+
+input[type="range"]:disabled {
+  /*filter: grayscale(1);*/
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+input[type="range"]::-webkit-slider-thumb,
+input[type="range"]::-moz-range-thumb {
+  width: 1.4rem;
+  height: 1.4rem;
+  border: none;
+  border-radius: 100rem;
+  background: var(--accent-color);
+  transition: var(--transition-time);
+}
+
+input[type="range"]::-webkit-slider-thumb:hover {
+  background: var(--accent-color-l-10);
+}
+
+input[type="range"]::-moz-range-thumb:hover {
+  background: var(--accent-color-l-10);
+}
+
+.text-container {
+  display: flex;
+  flex-flow: row wrap;
+  justify-content: flex-start;
+  align-items: center;
+  align-content: flex-start;
+  column-gap: 0.5em;
+}
+
+.text-container>span {
+  display: inline-block;
+  width: 1.25em;
+  height: 1.25em;
+  vertical-align: middle;
+}
+
+.color_blob {
+  display: inline-block;
+  width: 1.25em;
+  height: 1.25em;
+  vertical-align: middle;
+  border-radius: 1000rem;
+
+  background-color: black;
+  border-color: var(--translucent-light);
+  border-width: 0.15rem;
+  border-style: solid;
 }
