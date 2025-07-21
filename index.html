@@ -20,162 +20,42 @@
 
         <br>
         <h3>Tile</h3>
-
-        <div class="control-container">
-          <div class="control-label">Tile Size X</div>
-          <input id="tile_size_x" class="control" type="range" min="10" max="1000" value="200" step="1"
-            oninput="params_changed()" />
-        </div>
-
-        <div class="control-container">
-          <div class="control-label">Tile Size Y</div>
-          <input id="tile_size_y" class="control" type="range" min="10" max="1000" value="400" step="1"
-            oninput="params_changed()" />
-        </div>
-
-        <div class="control-container">
-          <div class="control-label">Border Thickness</div>
-          <input id="border_thickness" class="control" type="range" min="0" max="20" value="3" step="0.25"
-            oninput="params_changed()" />
-        </div>
+        <div id="tile_size"></div>
+        <div id="border_thickness"></div>
 
         <br>
         <h3>Grid Lines</h3>
-
-        <div class="control-container">
-          <div class="control-label">Density</div>
-          <input id="grid_lines_density" class="control" type="range" min="1" max="2000" value="200" step="1"
-            oninput="params_changed()" />
-        </div>
-
-        <div class="control-container">
-          <div class="control-label">Thickness</div>
-          <input id="grid_lines_thickness" class="control" type="range" min="0" max="20" value="1" step="0.25"
-            oninput="params_changed()" />
-        </div>
-
-        <div class="control-container">
-          <div class="control-label">Horizontal Lines</div>
-          <input id="grid_lines_opacity_horizontal" class="control" type="range" min="0" max="1" value="0" step="0.001"
-            oninput="params_changed()" />
-        </div>
-
-        <div class="control-container">
-          <div class="control-label">Vertical Lines</div>
-          <input id="grid_lines_opacity_vertical" class="control" type="range" min="0" max="1" value="0.05" step="0.001"
-            oninput="params_changed()" />
-        </div>
+        <div id="grid_lines_density"></div>
+        <div id="grid_lines_thickness"></div>
+        <div id="grid_lines_opacity_horizontal"></div>
+        <div id="grid_lines_opacity_vertical"></div>
 
         <br>
         <h3>Masjad</h3>
-
-        <div class="control-container">
-          <div class="control-label">Position</div>
-          <input id="masjad_position" class="control" type="range" min="0" max="0.5" value="0.125" step="0.001"
-            oninput="params_changed()" />
-        </div>
-
-        <div class="control-container">
-          <div class="control-label">Radius</div>
-          <input id="masjad_radius" class="control" type="range" min="0" max="0.5" value="0.05" step="0.001"
-            oninput="params_changed()" />
-        </div>
+        <div id="masjad_position"></div>
+        <div id="masjad_radius"></div>
 
         <br>
         <h3>Feet</h3>
-
-        <div class="control-container">
-          <div class="control-label">Vertical Position</div>
-          <input id="feet_vertical_position" class="control" type="range" min="0" max="0.5" value="0.2" step="0.001"
-            oninput="params_changed()" />
-        </div>
-
-        <div class="control-container">
-          <div class="control-label">Horizontal Distance</div>
-          <input id="feet_horizontal_distance" class="control" type="range" min="0" max="0.3" value="0.12" step="0.001"
-            oninput="params_changed()" />
-        </div>
-
-        <div class="control-container">
-          <div class="control-label">Size X</div>
-          <input id="feet_size_x" class="control" type="range" min="0" max="0.3" value="0.05" step="0.001"
-            oninput="params_changed()" />
-        </div>
-
-        <div class="control-container">
-          <div class="control-label">Size Y</div>
-          <input id="feet_size_y" class="control" type="range" min="0" max="0.3" value="0.13" step="0.001"
-            oninput="params_changed()" />
-        </div>
+        <div id="feet_vertical_position"></div>
+        <div id="feet_horizontal_distance"></div>
+        <div id="feet_size"></div>
 
         <br>
         <h3>Transform</h3>
-
-        <div class="control-container">
-          <div class="control-label">Scale X</div>
-          <input id="transform_scale_x" class="control" type="range" min="0.1" max="3" value="1" step="0.001"
-            oninput="params_changed()" />
-        </div>
-
-        <div class="control-container">
-          <div class="control-label">Scale Y</div>
-          <input id="transform_scale_y" class="control" type="range" min="0.1" max="3" value="1" step="0.001"
-            oninput="params_changed()" />
-        </div>
-
-        <div class="control-container">
-          <div class="control-label">Skew X</div>
-          <input id="transform_skew_x" class="control" type="range" min="-1" max="1" value="0" step="0.001"
-            oninput="params_changed()" />
-        </div>
-
-        <div class="control-container">
-          <div class="control-label">Skew Y</div>
-          <input id="transform_skew_y" class="control" type="range" min="-1" max="1" value="0" step="0.001"
-            oninput="params_changed()" />
-        </div>
-
-        <div class="control-container">
-          <div class="control-label">Rotation</div>
-          <input id="transform_rotation" class="control" type="range" min="-180" max="180" value="0" step="0.001"
-            oninput="params_changed()" />
-        </div>
-
-        <div class="control-container">
-          <div class="control-label">Offset X</div>
-          <input id="transform_offset_x" class="control" type="range" min="-200" max="200" value="0" step="0.25"
-            oninput="params_changed()" />
-        </div>
-
-        <div class="control-container">
-          <div class="control-label">Offset Y</div>
-          <input id="transform_offset_y" class="control" type="range" min="-200" max="200" value="0" step="0.25"
-            oninput="params_changed()" />
-        </div>
+        <div id="transform_scale"></div>
+        <div id="transform_skew"></div>
+        <div id="transform_rotation"></div>
+        <div id="transform_offset"></div>
 
         <br>
         <h3 class="text-container">
           <span id="background_color_blob" class="color_blob"></span>
           Background Color
         </h3>
-
-        <div class="control-container">
-          <div class="control-label">Hue</div>
-          <input id="background_color_h" class="control" type="range" min="0" max="1" value="0" step="0.001"
-            oninput="params_changed()" />
-        </div>
-
-        <div class="control-container">
-          <div class="control-label">Saturation</div>
-          <input id="background_color_s" class="control" type="range" min="0" max="1" value="0" step="0.001"
-            oninput="params_changed()" />
-        </div>
-
-        <div class="control-container">
-          <div class="control-label">Value</div>
-          <input id="background_color_v" class="control" type="range" min="0" max="1" value="0" step="0.001"
-            oninput="params_changed()" />
-        </div>
+        <div id="background_color_h"></div>
+        <div id="background_color_s"></div>
+        <div id="background_color_v"></div>
 
         <br>
         <h3 class="text-container">
@@ -183,19 +63,19 @@
           Pattern Color
         </h3>
 
-        <div class="control-container">
+        <div id="pattern_color_h">
           <div class="control-label">Hue</div>
           <input id="pattern_color_h" class="control" type="range" min="0" max="1" value="0" step="0.001"
             oninput="params_changed()" />
         </div>
 
-        <div class="control-container">
+        <div id="pattern_color_s">
           <div class="control-label">Saturation</div>
           <input id="pattern_color_s" class="control" type="range" min="0" max="1" value="0" step="0.001"
             oninput="params_changed()" />
         </div>
 
-        <div class="control-container">
+        <div id="pattern_color_v">
           <div class="control-label">Value</div>
           <input id="pattern_color_v" class="control" type="range" min="0" max="1" value="1" step="0.001"
             oninput="params_changed()" />
