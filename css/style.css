@@ -389,6 +389,7 @@ button:active {
 .control {
   flex-basis: 100%;
   flex-shrink: 10000;
+  min-width: 3rem;
 }
 
 input[type="range"] {
