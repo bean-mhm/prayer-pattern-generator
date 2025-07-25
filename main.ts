@@ -390,9 +390,11 @@ function init() {
     // events
     document.getElementById("btn-hide")!.addEventListener("click", () => {
         document.getElementById("controls")!.classList.add("hide");
+        document.getElementById("canvas")!.classList.remove("untouchable");
     });
     document.getElementById("canvas")!.addEventListener("click", () => {
         document.getElementById("controls")!.classList.remove("hide");
+        document.getElementById("canvas")!.classList.add("untouchable");
     });
 
     // add parameters

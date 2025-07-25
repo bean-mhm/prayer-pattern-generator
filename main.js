@@ -268,9 +268,11 @@ function init() {
     // events
     document.getElementById("btn-hide").addEventListener("click", function () {
         document.getElementById("controls").classList.add("hide");
+        document.getElementById("canvas").classList.remove("untouchable");
     });
     document.getElementById("canvas").addEventListener("click", function () {
         document.getElementById("controls").classList.remove("hide");
+        document.getElementById("canvas").classList.add("untouchable");
     });
     // add parameters
     param_list.add(new Param("tile_size", "Tile Size", new Vec2(200., 400.), "use-id", function () { return render_canvas(); }, null, { min: 10., max: 1000., step: 1., value_unit: "px", decimal_digits: 0 }));

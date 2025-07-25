@@ -420,6 +420,10 @@ button.transparent-button:active {
   transition: var(--transition-time);
 }
 
+.untouchable {
+  pointer-events: none;
+}
+
 #controls {
   margin-top: 2rem;
   margin-bottom: 2rem;
