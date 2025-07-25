@@ -420,6 +420,11 @@ button.transparent-button:active {
   transition: var(--transition-time);
 }
 
+#controls {
+  margin-top: 2rem;
+  margin-bottom: 2rem;
+}
+
 .control-container {
   display: flex;
   flex-flow: row nowrap;
