@@ -3,6 +3,22 @@
   src: url(../fonts/Rubik/Rubik-VariableFont_wght.ttf);
 }
 
+/* https://fonts.google.com/icons */
+@font-face {
+  font-family: MaterialSymbolsOutlined;
+  src: url(../fonts/MaterialSymbols/MaterialSymbolsOutlined-VariableFont_FILL,GRAD,opsz,wght.ttf);
+}
+
+.material-symbols-outlined {
+  font-family: MaterialSymbolsOutlined;
+  font-variation-settings:
+    'FILL' 0,
+    'wght' 400,
+    'GRAD' 0,
+    'opsz' 24;
+  transform: scale(115%);
+}
+
 :root {
   --font-family: Rubik, system-ui, sans-serif;
   --font-size: 20px;
@@ -489,8 +505,6 @@ input[type="range"]::-moz-range-thumb:hover {
 
 .text-container>span {
   display: inline-block;
-  width: 1.25em;
-  height: 1.25em;
   vertical-align: middle;
 }
 
