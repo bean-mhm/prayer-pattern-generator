@@ -3,6 +3,18 @@
 
 type Value = number | Vec2;
 
+function get_value_type(v: Value): string {
+    if (typeof v === "number") {
+        return "number";
+    }
+    else if (v instanceof Vec2) {
+        return "Vec2";
+    }
+    else {
+        throw new Error("unsupported value type");
+    }
+}
+
 type ParamChangeEvent = (
     param: Param,
     old_value: Value,
@@ -319,6 +331,39 @@ class ParamList {
     render_all() {
         for (const param of this.params) {
             param.render();
+        }
+    }
+
+    serialize() {
+        let data: Dictionary = {};
+        for (const param of this.params) {
+            (data[param.id()] as Dictionary).type = get_value_type(param.get());
+            (data[param.id()] as Dictionary).value = param.get();
+        }
+        return JSON.stringify(data);
+    }
+
+    deserialize(s_data: string, invoke_change_event: boolean = false) {
+        let data = JSON.parse(s_data) as Dictionary;
+        for (const key in data) {
+            if (!data.hasOwnProperty(key)) {
+                continue;
+            }
+
+            let param = this.get(key);
+            if (param === null) {
+                console.warn(
+                    "data contains a parameter ID that doesn't currently exist"
+                );
+                continue;
+            }
+
+            let elem = data[key] as Dictionary;
+            if (get_value_type(param.get()) !== (elem.type! as string)) {
+                throw new Error("data has a different value type");
+            }
+
+            param.set(elem.value! as Value, invoke_change_event);
         }
     }
 }

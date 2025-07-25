@@ -38,6 +38,15 @@ function init() {
         document.getElementById("controls")!.classList.remove("hide");
         document.getElementById("canvas")!.classList.add("untouchable");
     });
+    document.getElementById("btn-reset-all")!.addEventListener("click", () => {
+        reset_params();
+    });
+    document.getElementById("btn-import")!.addEventListener("click", () => {
+        import_params();
+    });
+    document.getElementById("btn-export")!.addEventListener("click", () => {
+        export_params();
+    });
 
     // add parameters
     param_list.add(new Param(
@@ -790,4 +799,12 @@ function render_canvas() {
     state.gl!.clearColor(0, 0, 0, 1);
     state.gl!.clear(WebGL2RenderingContext.COLOR_BUFFER_BIT);
     state.gl!.drawArrays(WebGL2RenderingContext.TRIANGLES, 0, 6);
+}
+
+function import_params() {
+    console.log("hello import!");
+}
+
+function export_params() {
+    console.log("hello export!");
 }

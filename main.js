@@ -189,6 +189,17 @@ function slider_get_indicator(elem) {
 }
 /// <reference path="utils.ts" />
 /// <reference path="ui.ts" />
+function get_value_type(v) {
+    if (typeof v === "number") {
+        return "number";
+    }
+    else if (v instanceof Vec2) {
+        return "Vec2";
+    }
+    else {
+        throw new Error("unsupported value type");
+    }
+}
 class Param {
     constructor(id, name, value, element = null, change_event = null, render_event = null, config = {}) {
         this._id = id;
@@ -400,6 +411,32 @@ class ParamList {
             param.render();
         }
     }
+    serialize() {
+        let data = {};
+        for (const param of this.params) {
+            data[param.id()].type = get_value_type(param.get());
+            data[param.id()].value = param.get();
+        }
+        return JSON.stringify(data);
+    }
+    deserialize(s_data, invoke_change_event = false) {
+        let data = JSON.parse(s_data);
+        for (const key in data) {
+            if (!data.hasOwnProperty(key)) {
+                continue;
+            }
+            let param = this.get(key);
+            if (param === null) {
+                console.warn("data contains a parameter ID that doesn't currently exist");
+                continue;
+            }
+            let elem = data[key];
+            if (get_value_type(param.get()) !== elem.type) {
+                throw new Error("data has a different value type");
+            }
+            param.set(elem.value, invoke_change_event);
+        }
+    }
 }
 /// <reference path="utils.ts" />
 /// <reference path="params.ts" />
@@ -428,6 +465,15 @@ function init() {
     document.getElementById("canvas").addEventListener("click", () => {
         document.getElementById("controls").classList.remove("hide");
         document.getElementById("canvas").classList.add("untouchable");
+    });
+    document.getElementById("btn-reset-all").addEventListener("click", () => {
+        reset_params();
+    });
+    document.getElementById("btn-import").addEventListener("click", () => {
+        import_params();
+    });
+    document.getElementById("btn-export").addEventListener("click", () => {
+        export_params();
     });
     // add parameters
     param_list.add(new Param("tile_size", "Tile Size", new Vec2(200., 400.), "use-id", () => render_canvas(), null, { min: 10., max: 1000., step: 1., value_unit: "px", decimal_digits: 0 }));
@@ -943,4 +989,10 @@ function render_canvas() {
     state.gl.clearColor(0, 0, 0, 1);
     state.gl.clear(WebGL2RenderingContext.COLOR_BUFFER_BIT);
     state.gl.drawArrays(WebGL2RenderingContext.TRIANGLES, 0, 6);
+}
+function import_params() {
+    console.log("hello import!");
+}
+function export_params() {
+    console.log("hello export!");
 }
