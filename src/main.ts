@@ -801,10 +801,27 @@ function render_canvas() {
     state.gl!.drawArrays(WebGL2RenderingContext.TRIANGLES, 0, 6);
 }
 
+const param_json_prefix: string = "prayer pattern data\n";
+
 function import_params() {
-    console.log("hello import!");
+    load_text_from_file()
+        .then(text => {
+            if (!text.startsWith(param_json_prefix)) {
+                console.error("incorrect data");
+                return;
+            }
+            text = text.slice(param_json_prefix.length);
+            param_list.deserialize(text);
+            render_canvas();
+        })
+        .catch(err => {
+            console.error(err);
+        });
 }
 
 function export_params() {
-    console.log("hello export!");
+    save_text_as_file(
+        "pattern.json",
+        param_json_prefix + param_list.serialize()
+    );
 }

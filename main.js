@@ -109,6 +109,87 @@ function deep_clone(v) {
     }
     return clone;
 }
+function browse_file() {
+    return new Promise((resolve, reject) => {
+        // create a hidden file input element
+        const input = document.body.appendChild(document.createElement('input'));
+        input.type = 'file';
+        input.style.display = 'none';
+        input.addEventListener('change', () => {
+            var _a;
+            const file = (_a = input.files) === null || _a === void 0 ? void 0 : _a[0];
+            if (!file) {
+                cleanup();
+                return reject(new Error('no file selected'));
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+                cleanup();
+                if (typeof reader.result === 'string') {
+                    resolve(reader.result);
+                }
+                else {
+                    reject(new Error('File could not be read as text.'));
+                }
+            };
+            reader.onerror = () => {
+                cleanup();
+                reject(new Error('Error reading file.'));
+            };
+            reader.readAsText(file);
+        });
+        input.click();
+        function cleanup() {
+            input.remove();
+        }
+    });
+}
+function load_text_from_file() {
+    return new Promise((resolve, reject) => {
+        const input = document.body.appendChild(document.createElement("input"));
+        input.type = "file";
+        input.style.display = "none";
+        input.addEventListener("change", () => {
+            var _a;
+            const file = (_a = input.files) === null || _a === void 0 ? void 0 : _a[0];
+            if (!file) {
+                cleanup();
+                return reject(new Error("no file selected"));
+            }
+            const reader = new FileReader();
+            reader.onload = () => {
+                cleanup();
+                if (typeof reader.result === "string") {
+                    resolve(reader.result);
+                }
+                else {
+                    reject(new Error("failed to read file as a string"));
+                }
+            };
+            reader.onerror = () => {
+                cleanup();
+                reject(new Error("failed to read file"));
+            };
+            reader.readAsText(file);
+        });
+        input.click();
+        function cleanup() {
+            input.remove();
+        }
+    });
+}
+function save_text_as_file(filename, content) {
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    // append, trigger click, clean up
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+}
 /// <reference path="utils.ts" />
 function create_shader(gl, type, source) {
     const shader = gl.createShader(type);
@@ -414,8 +495,10 @@ class ParamList {
     serialize() {
         let data = {};
         for (const param of this.params) {
-            data[param.id()].type = get_value_type(param.get());
-            data[param.id()].value = param.get();
+            data[param.id()] = {
+                type: get_value_type(param.get()),
+                value: param.get()
+            };
         }
         return JSON.stringify(data);
     }
@@ -434,7 +517,15 @@ class ParamList {
             if (get_value_type(param.get()) !== elem.type) {
                 throw new Error("data has a different value type");
             }
-            param.set(elem.value, invoke_change_event);
+            if (typeof param.get() === "number") {
+                param.set(elem.value, invoke_change_event);
+            }
+            else if (param.get() instanceof Vec2) {
+                param.set(new Vec2(elem.value.x, elem.value.y));
+            }
+            else {
+                throw new Error("unsupported value type");
+            }
         }
     }
 }
@@ -990,9 +1081,22 @@ function render_canvas() {
     state.gl.clear(WebGL2RenderingContext.COLOR_BUFFER_BIT);
     state.gl.drawArrays(WebGL2RenderingContext.TRIANGLES, 0, 6);
 }
+const param_json_prefix = "prayer pattern data\n";
 function import_params() {
-    console.log("hello import!");
+    load_text_from_file()
+        .then(text => {
+        if (!text.startsWith(param_json_prefix)) {
+            console.error("incorrect data");
+            return;
+        }
+        text = text.slice(param_json_prefix.length);
+        param_list.deserialize(text);
+        render_canvas();
+    })
+        .catch(err => {
+        console.error(err);
+    });
 }
 function export_params() {
-    console.log("hello export!");
+    save_text_as_file("pattern.json", param_json_prefix + param_list.serialize());
 }

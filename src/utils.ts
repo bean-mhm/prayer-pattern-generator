@@ -120,3 +120,96 @@ function deep_clone<T>(v: T): T {
     }
     return clone;
 }
+
+function browse_file(): Promise<string> {
+    return new Promise((resolve, reject) => {
+        // create a hidden file input element
+        const input = document.body.appendChild(document.createElement('input'));
+        input.type = 'file';
+        input.style.display = 'none';
+
+        input.addEventListener('change', () => {
+            const file = input.files?.[0];
+            if (!file) {
+                cleanup();
+                return reject(new Error('no file selected'));
+            }
+
+            const reader = new FileReader();
+
+            reader.onload = () => {
+                cleanup();
+                if (typeof reader.result === 'string') {
+                    resolve(reader.result);
+                } else {
+                    reject(new Error('File could not be read as text.'));
+                }
+            };
+
+            reader.onerror = () => {
+                cleanup();
+                reject(new Error('Error reading file.'));
+            };
+
+            reader.readAsText(file);
+        });
+
+        input.click();
+
+        function cleanup() {
+            input.remove();
+        }
+    });
+}
+
+function load_text_from_file(): Promise<string> {
+    return new Promise((resolve, reject) => {
+        const input = document.body.appendChild(document.createElement("input"));
+        input.type = "file";
+        input.style.display = "none";
+        input.addEventListener("change", () => {
+            const file = input.files?.[0];
+            if (!file) {
+                cleanup();
+                return reject(new Error("no file selected"));
+            }
+
+            const reader = new FileReader();
+            reader.onload = () => {
+                cleanup();
+                if (typeof reader.result === "string") {
+                    resolve(reader.result);
+                } else {
+                    reject(new Error("failed to read file as a string"));
+                }
+            };
+            reader.onerror = () => {
+                cleanup();
+                reject(new Error("failed to read file"));
+            };
+            reader.readAsText(file);
+        });
+
+        input.click();
+
+        function cleanup() {
+            input.remove();
+        }
+    });
+}
+
+function save_text_as_file(filename: string, content: string) {
+    const blob = new Blob([content], { type: 'text/plain' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+
+    // append, trigger click, clean up
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+
+    URL.revokeObjectURL(url);
+}

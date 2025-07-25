@@ -337,8 +337,10 @@ class ParamList {
     serialize() {
         let data: Dictionary = {};
         for (const param of this.params) {
-            (data[param.id()] as Dictionary).type = get_value_type(param.get());
-            (data[param.id()] as Dictionary).value = param.get();
+            data[param.id()] = {
+                type: get_value_type(param.get()),
+                value: param.get()
+            } as Dictionary;
         }
         return JSON.stringify(data);
     }
@@ -363,7 +365,16 @@ class ParamList {
                 throw new Error("data has a different value type");
             }
 
-            param.set(elem.value! as Value, invoke_change_event);
+            if (typeof param.get() === "number") {
+                param.set(elem.value! as number, invoke_change_event);
+            } else if (param.get() instanceof Vec2) {
+                param.set(new Vec2(
+                    (elem.value! as Vec2).x,
+                    (elem.value! as Vec2).y
+                ));
+            } else {
+                throw new Error("unsupported value type");
+            }
         }
     }
 }
