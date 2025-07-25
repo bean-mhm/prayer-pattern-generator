@@ -387,6 +387,14 @@ function reset_params() {
 }
 
 function init() {
+    // events
+    document.getElementById("btn-hide")!.addEventListener("click", () => {
+        document.getElementById("controls")!.classList.add("hide");
+    });
+    document.getElementById("canvas")!.addEventListener("click", () => {
+        document.getElementById("controls")!.classList.remove("hide");
+    });
+
     // add parameters
     param_list.add(new Param(
         "tile_size",

@@ -265,6 +265,13 @@ function reset_params() {
     render_canvas();
 }
 function init() {
+    // events
+    document.getElementById("btn-hide").addEventListener("click", function () {
+        document.getElementById("controls").classList.add("hide");
+    });
+    document.getElementById("canvas").addEventListener("click", function () {
+        document.getElementById("controls").classList.remove("hide");
+    });
     // add parameters
     param_list.add(new Param("tile_size", "Tile Size", new Vec2(200., 400.), "use-id", function () { return render_canvas(); }, null, { min: 10., max: 1000., step: 1., value_unit: "px", decimal_digits: 0 }));
     param_list.add(new Param("border_thickness", "Border Thickness", 3., "use-id", function () { return render_canvas(); }, null, { min: 0., max: 20., step: .25, value_unit: "px", decimal_digits: 2 }));

@@ -18,7 +18,7 @@
       <div id="controls" class="article">
         <h1 class="center">Prayer Pattern Generator</h1>
 
-        <br>
+        <div class="vspace"></div>
         <h3 class="text-container">
           <span class="material-symbols-outlined">window</span>
           Tile
@@ -26,7 +26,7 @@
         <div id="tile_size"></div>
         <div id="border_thickness"></div>
 
-        <br>
+        <div class="vspace"></div>
         <h3 class="text-container">
           <span class="material-symbols-outlined">grid_3x3</span>
           Grid Lines
@@ -36,7 +36,7 @@
         <div id="grid_lines_opacity_horizontal"></div>
         <div id="grid_lines_opacity_vertical"></div>
 
-        <br>
+        <div class="vspace"></div>
         <h3 class="text-container">
           <span class="material-symbols-outlined">mode_standby</span>
           Masjad
@@ -44,7 +44,7 @@
         <div id="masjad_position"></div>
         <div id="masjad_radius"></div>
 
-        <br>
+        <div class="vspace"></div>
         <h3 class="text-container">
           <span class="material-symbols-outlined">footprint</span>
           Feet
@@ -55,7 +55,7 @@
         <div id="feet_thickness"></div>
         <div id="feet_opacity"></div>
 
-        <br>
+        <div class="vspace"></div>
         <h3 class="text-container">
           <span class="material-symbols-outlined">transform</span>
           Transform
@@ -65,7 +65,7 @@
         <div id="transform_rotation"></div>
         <div id="transform_offset"></div>
 
-        <br>
+        <div class="vspace"></div>
         <h3 class="text-container">
           <span id="background_color_blob" class="color_blob"></span>
           Background Color
@@ -74,7 +74,7 @@
         <div id="background_color_s"></div>
         <div id="background_color_v"></div>
 
-        <br>
+        <div class="vspace"></div>
         <h3 class="text-container">
           <span id="pattern_color_blob" class="color_blob"></span>
           Pattern Color
@@ -83,8 +83,15 @@
         <div id="pattern_color_s"></div>
         <div id="pattern_color_v"></div>
 
-        <br>
-        <button onclick="reset_params()">Reset All</button>
+        <div class="vspace"></div>
+        <div class="block-container">
+          <div class="flexible-horiz-container">
+            <button id="btn-hide" class="transparent-button">Hide</button>
+            <button id="btn-import" class="transparent-button" onclick="">Import</button>
+            <button id="btn-export" class="transparent-button" onclick="">Export</button>
+          </div>
+          <button onclick="reset_params()">Reset All</button>
+        </div>
       </div>
     </div>
   </div>
