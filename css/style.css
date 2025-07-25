@@ -392,6 +392,49 @@ button:active {
   min-width: 3rem;
 }
 
+.slider-wrapper {
+  position: relative;
+  padding: 0;
+}
+
+.slider-input {
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  transform: translate(0, -50%);
+  z-index: 0;
+}
+
+.slider-indicator {
+  display: inline-block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+  transform: translate(0, -50%);
+  z-index: 1;
+
+  font-size: 0rem;
+  text-align: center;
+  pointer-events: none;
+
+  text-shadow: 0 0 0.8rem var(--gray-10);
+  opacity: 0;
+
+  transition: var(--transition-time);
+}
+
+.slider-indicator-show {
+  font-size: 1.15rem;
+  opacity: 0.8;
+}
+
 input[type="range"] {
   height: 1.4rem;
   border-radius: 100rem;

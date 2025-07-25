@@ -149,6 +149,30 @@ class Param {
         this.render();
     }
 
+    get_string(): string {
+        let unit_str: string = "";
+        if (typeof (this._config.value_unit) === "string") {
+            unit_str = " " + this._config.value_unit;
+        }
+
+        if (typeof this._value === "number") {
+            let s_value: string =
+                number_to_str(this._value, this._config.decimal_digits);
+
+            return s_value + unit_str;
+        } else if (this._value instanceof Vec2) {
+            let s_value_x: string =
+                number_to_str(this._value.x, this._config.decimal_digits);
+
+            let s_value_y: string =
+                number_to_str(this._value.y, this._config.decimal_digits);
+
+            return `${s_value_x}${unit_str}, ${s_value_y}${unit_str}`;
+        } else {
+            throw new Error("unsupported value type");
+        }
+    }
+
     render_from_scratch() {
         if (this._element === null) {
             return;
@@ -164,17 +188,22 @@ class Param {
         label.textContent = this._name;
 
         if (typeof this._value === "number") {
-            let input = elem.appendChild(document.createElement("input"));
-            input.className = "control";
-            input.type = "range";
+            let slider = elem.appendChild(slider_create(
+                (this._config.min || 0.) as number,
+                (this._config.max || 1.) as number,
+                (this._config.step || .001) as number,
+                this._value
+            ));
 
-            input.min = ((this._config.min || 0.) as number).toString();
-            input.max = ((this._config.max || 1.) as number).toString();
-            input.step = ((this._config.step || .001) as number).toString();
-            input.value = this._value.toString();
+            let indicator = slider_get_indicator(slider);
+            indicator.innerHTML = this.get_string();
+
+            let input = slider_get_input(slider);
             input.addEventListener("input", () => {
                 const old_value = deep_clone(this._value);
                 this._value = parseFloat(input.value);
+
+                indicator.innerHTML = this.get_string();
 
                 if (this._change_event !== null) {
                     this._change_event(this, old_value, this._value, false);
@@ -219,6 +248,7 @@ class Param {
         }
 
         this._element.replaceWith(elem);
+        this._element = elem;
 
         if (this._render_event !== null) {
             this._render_event(this);
@@ -236,8 +266,15 @@ class Param {
         }
 
         if (typeof this._value === "number") {
-            let input = this._element.getElementsByTagName("input")[0];
+            let slider = this._element!.getElementsByClassName(
+                "slider-wrapper"
+            )[0]! as HTMLElement;
+
+            let input = slider_get_input(slider);
             input.value = this._value.toString();
+
+            let indicator = slider_get_indicator(slider);
+            indicator.innerHTML = this.get_string();
         }
         else if (this._value instanceof Vec2) {
             let inputs = this._element.getElementsByTagName("input");
@@ -325,7 +362,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 10., max: 1000., step: 1. }
+        { min: 10., max: 1000., step: 1., value_unit: "px", decimal_digits: 0 }
     ));
     param_list.add(new Param(
         "border_thickness",
@@ -334,7 +371,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: 20., step: .25 }
+        { min: 0., max: 20., step: .25, value_unit: "px", decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "grid_lines_density",
@@ -343,7 +380,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 1., max: 2000., step: 1. }
+        { min: 1., max: 2000., step: 1., decimal_digits: 0 }
     ));
     param_list.add(new Param(
         "grid_lines_thickness",
@@ -352,7 +389,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: 20., step: .25 }
+        { min: 0., max: 20., step: .25, value_unit: "px", decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "grid_lines_opacity_horizontal",
@@ -361,7 +398,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: 1., step: .001 }
+        { min: 0., max: 1., step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "grid_lines_opacity_vertical",
@@ -370,7 +407,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: 1., step: .001 }
+        { min: 0., max: 1., step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "masjad_position",
@@ -379,7 +416,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: .5, step: .001 }
+        { min: 0., max: .5, step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "masjad_radius",
@@ -388,7 +425,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: .5, step: .001 }
+        { min: 0., max: .5, step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "feet_vertical_position",
@@ -397,7 +434,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: .5, step: .001 }
+        { min: 0., max: .5, step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "feet_horizontal_distance",
@@ -406,7 +443,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: .3, step: .001 }
+        { min: 0., max: .3, step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "feet_thickness",
@@ -415,7 +452,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: 20., step: .25 }
+        { min: 0., max: 20., step: .25, value_unit: "px", decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "feet_opacity",
@@ -424,7 +461,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: 1., step: .001 }
+        { min: 0., max: 1., step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "feet_size",
@@ -433,7 +470,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: .3, step: .001 }
+        { min: 0., max: .3, step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "transform_scale",
@@ -442,7 +479,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: .1, max: 3., step: .001 }
+        { min: .1, max: 3., step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "transform_skew",
@@ -451,7 +488,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: -1., max: 1., step: .001 }
+        { min: -1., max: 1., step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "transform_rotation",
@@ -460,7 +497,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: -180., max: 180., step: .001 }
+        { min: -180., max: 180., step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "transform_offset",
@@ -469,7 +506,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: -200., max: 200., step: .25 }
+        { min: -200., max: 200., step: .25, value_unit: "px", decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "background_color_h",
@@ -478,7 +515,7 @@ function init() {
         "use-id",
         () => { update_color_blobs(); render_canvas(); },
         () => update_color_blobs(),
-        { min: 0., max: 1., step: .001 }
+        { min: 0., max: 1., step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "background_color_s",
@@ -487,7 +524,7 @@ function init() {
         "use-id",
         () => { update_color_blobs(); render_canvas(); },
         () => update_color_blobs(),
-        { min: 0., max: 1., step: .001 }
+        { min: 0., max: 1., step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "background_color_v",
@@ -496,7 +533,7 @@ function init() {
         "use-id",
         () => { update_color_blobs(); render_canvas(); },
         () => update_color_blobs(),
-        { min: 0., max: 1., step: .001 }
+        { min: 0., max: 1., step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "pattern_color_h",
@@ -505,7 +542,7 @@ function init() {
         "use-id",
         () => { update_color_blobs(); render_canvas(); },
         () => update_color_blobs(),
-        { min: 0., max: 1., step: .001 }
+        { min: 0., max: 1., step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "pattern_color_s",
@@ -514,7 +551,7 @@ function init() {
         "use-id",
         () => { update_color_blobs(); render_canvas(); },
         () => update_color_blobs(),
-        { min: 0., max: 1., step: .001 }
+        { min: 0., max: 1., step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "pattern_color_v",
@@ -523,7 +560,7 @@ function init() {
         "use-id",
         () => { update_color_blobs(); render_canvas(); },
         () => update_color_blobs(),
-        { min: 0., max: 1., step: .001 }
+        { min: 0., max: 1., step: .001, decimal_digits: 2 }
     ));
 
     // make a copy of the initial values to use in reset_params()
@@ -937,12 +974,12 @@ void main()
     const int N_SAMPLES = 32;
     for (int i = 0; i < N_SAMPLES; i++)
     {
-        vec2 offs = vec2(
+        vec2 jitter_offs = vec2(
             hashf(ivec2(i, 10)),
             hashf(ivec2(i, 20))
         ) - .5;
         
-        col += render(frag_coord + offs);
+        col += render(frag_coord + jitter_offs);
     }
     col /= float(N_SAMPLES);
     
@@ -1300,4 +1337,58 @@ function deep_clone<T>(v: T): T {
         }
     }
     return clone;
+}
+
+function slider_create(
+    min: number,
+    max: number,
+    step: number,
+    value: number
+): HTMLElement {
+    let slider_wrapper = document.createElement("div");
+    slider_wrapper.className = "control slider-wrapper";
+
+    let input = slider_wrapper.appendChild(
+        document.createElement("input")
+    );
+    input.className = "slider-input";
+    input.type = "range";
+
+    input.min = min.toString();
+    input.max = max.toString();
+    input.step = step.toString();
+    input.value = value.toString();
+
+    let indicator = slider_wrapper.appendChild(
+        document.createElement("div")
+    );
+    indicator.className = "slider-indicator";
+
+    input.addEventListener("mouseenter", () => {
+        indicator.classList.add("slider-indicator-show");
+    });
+    input.addEventListener("mouseleave", () => {
+        indicator.classList.remove("slider-indicator-show");
+    });
+
+    return slider_wrapper;
+}
+
+function slider_get_input(elem: HTMLElement): HTMLInputElement {
+    return elem.getElementsByTagName("input")[0] as HTMLInputElement;
+}
+
+function slider_get_indicator(elem: HTMLElement): HTMLDivElement {
+    return elem.getElementsByTagName("div")[0] as HTMLDivElement;
+}
+
+function number_to_str(
+    v: number,
+    decimal_digits: any = undefined
+) {
+    if (typeof decimal_digits === "number") {
+        return v.toFixed(decimal_digits);
+    } else {
+        return v.toString();
+    }
 }
