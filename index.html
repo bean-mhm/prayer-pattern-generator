@@ -9,13 +9,13 @@
   <title>Prayer Pattern Generator</title>
 </head>
 
-<body onload="init_canvas()" onresize="init_canvas()">
+<body onload="init()" onresize="viewport_resized()">
   <div class="wrapper">
     <div class="container">
       <canvas id="canvas"></canvas>
       <div id="error-message">WebGL2 is not supported.</div>
 
-      <div class="article">
+      <div id="controls" class="article">
         <h1 class="center">Prayer Pattern Generator</h1>
 
         <br>
@@ -40,6 +40,8 @@
         <div id="feet_vertical_position"></div>
         <div id="feet_horizontal_distance"></div>
         <div id="feet_size"></div>
+        <div id="feet_thickness"></div>
+        <div id="feet_opacity"></div>
 
         <br>
         <h3>Transform</h3>
@@ -62,24 +64,9 @@
           <span id="pattern_color_blob" class="color_blob"></span>
           Pattern Color
         </h3>
-
-        <div id="pattern_color_h">
-          <div class="control-label">Hue</div>
-          <input id="pattern_color_h" class="control" type="range" min="0" max="1" value="0" step="0.001"
-            oninput="params_changed()" />
-        </div>
-
-        <div id="pattern_color_s">
-          <div class="control-label">Saturation</div>
-          <input id="pattern_color_s" class="control" type="range" min="0" max="1" value="0" step="0.001"
-            oninput="params_changed()" />
-        </div>
-
-        <div id="pattern_color_v">
-          <div class="control-label">Value</div>
-          <input id="pattern_color_v" class="control" type="range" min="0" max="1" value="1" step="0.001"
-            oninput="params_changed()" />
-        </div>
+        <div id="pattern_color_h"></div>
+        <div id="pattern_color_s"></div>
+        <div id="pattern_color_v"></div>
 
         <br>
         <button onclick="reset_params()">Reset All</button>

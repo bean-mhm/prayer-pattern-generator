@@ -1,223 +1,255 @@
 interface Dictionary {
-    [key: string]: any;
+    [key: string]: unknown;
 }
 
-interface Vec2 {
+class Vec2 {
     x: number;
     y: number;
+
+    constructor(x: number, y: number) {
+        this.x = x;
+        this.y = y;
+    }
 }
+
+class Vec3 {
+    x: number;
+    y: number;
+    z: number;
+
+    constructor(x: number, y: number, z: number) {
+        this.x = x;
+        this.y = y;
+        this.z = z;
+    }
+}
+
+function arr_to_vec2(arr: number[]): Vec2 {
+    if (arr.length != 2) {
+        throw new Error("array must have exactly 2 elements");
+    }
+    return new Vec2(arr[0], arr[1]);
+}
+
+function arr_to_vec3(arr: number[]): Vec3 {
+    if (arr.length != 3) {
+        throw new Error("array must have exactly 3 elements");
+    }
+    return new Vec3(arr[0], arr[1], arr[2]);
+}
+
+type Value = number | Vec2;
+
+type ParamChangeEvent = (
+    param: Param,
+    old_value: Value,
+    new_value: Value,
+    own_change: boolean // was the change caused by calling set()?
+) => void;
+
+type ParamRenderEvent = (param: Param) => void;
 
 class Param {
-    id: string;
-    name: string;
-    element: HTMLElement | null;
+    private readonly _id: string;
+    private _name: string;
+    private _value: Value;
+    private _element: HTMLElement | null;
+    private _change_event: ParamChangeEvent | null;
+    private _render_event: ParamRenderEvent | null;
+    private _config: Dictionary;
 
     constructor(
         id: string,
         name: string,
-        element: HTMLElement | "use-id" | null
+        value: Value,
+        element: HTMLElement | "use-id" | null = null,
+        change_event: ParamChangeEvent | null = null,
+        render_event: ParamRenderEvent | null = null,
+        config: Dictionary = {}
     ) {
-        this.id = id;
-        this.name = name;
+        this._id = id;
+        this._name = name;
+        this._value = deep_clone(value);
         if (element === "use-id") {
-            this.element = document.getElementById(this.id);
+            this._element = document.getElementById(this._id);
         } else {
-            this.element = element;
+            this._element = element;
         }
+        this._change_event = change_event;
+        this._render_event = render_event;
+        this._config = deep_clone(config);
+
+        this.render();
     }
 
-    render() {
-        console.log(
-            "you're supposed to call render() on derived classes of Param, " +
-            "not Param itself"
-        );
-    }
-}
-
-type ParamListener<ParamType, ValueType> =
-    (param: ParamType, old_value: ValueType, new_value: ValueType) => void;
-
-class StringParam extends Param {
-    value: string;
-    listener: ParamListener<StringParam, string> | null;
-
-    constructor(
-        id: string,
-        name: string,
-        element: HTMLElement | "use-id" | null,
-        value: string,
-        listener: ParamListener<StringParam, string> | null
-    ) {
-        super(id, name, element);
-        this.value = value;
-        this.listener = listener;
+    id(): string {
+        return this._id;
     }
 
-    render() {
-        if (this.element === null) {
-            return;
+    name(): string {
+        return this._name;
+    }
+
+    set_name(new_name: string) {
+        this._name = new_name;
+        this.render_from_scratch();
+    }
+
+    element(): HTMLElement | null {
+        return this._element;
+    }
+
+    set_element(new_element: HTMLElement | null) {
+        this._element = new_element;
+    }
+
+    change_event(): ParamChangeEvent | null {
+        return this._change_event;
+    }
+
+    set_change_event(new_event: ParamChangeEvent | null) {
+        this._change_event = new_event;
+    }
+
+    render_event(): ParamRenderEvent | null {
+        return this._render_event;
+    }
+
+    set_render_event(new_event: ParamRenderEvent | null) {
+        this._render_event = new_event;
+    }
+
+    config(): Dictionary {
+        return this._config;
+    }
+
+    set_config(new_config: Dictionary) {
+        this._config = deep_clone(new_config);
+    }
+
+    get(): Value {
+        return this._value;
+    }
+
+    set(new_value: Value, invoke_change_event: boolean = false) {
+        if (typeof new_value !== typeof this._value) {
+            throw new Error(
+                "can't change parameter's value type after it's been " +
+                "constructed."
+            );
         }
-        throw new Error("not yet implemented");
-    }
-}
 
-class NumberParam extends Param {
-    value: number;
-    min: number;
-    max: number;
-    step: number;
-    listener: ParamListener<NumberParam, number> | null;
+        const old_value = deep_clone(this._value);
+        this._value = deep_clone(new_value);
 
-    private has_ever_rendered: boolean = false;
+        if (invoke_change_event && this._change_event !== null) {
+            this._change_event(this, old_value, this._value, true);
+        }
 
-    constructor(
-        id: string,
-        name: string,
-        element: HTMLElement | "use-id" | null,
-        value: number,
-        min: number,
-        max: number,
-        step: number,
-        listener: ParamListener<NumberParam, number> | null
-    ) {
-        super(id, name, element);
-        this.value = value;
-        this.min = min;
-        this.max = max;
-        this.step = step;
-        this.listener = listener;
+        this.render();
     }
 
     render_from_scratch() {
-        if (this.element === null) {
+        if (this._element === null) {
             return;
         }
 
         let elem = document.createElement("div");
+        elem.id = this._element.id;
         elem.toggleAttribute("has-ever-rendered", true);
         elem.className = "control-container";
 
         let label = elem.appendChild(document.createElement("div"));
         label.className = "control-label";
-        label.textContent = this.name;
+        label.textContent = this._name;
 
-        let input = elem.appendChild(document.createElement("input"));
-        input.className = "control";
-        input.type = "range";
-        input.min = this.min.toString();
-        input.max = this.max.toString();
-        input.step = this.step.toString();
-        input.value = this.value.toString();
-        input.addEventListener("input", () => {
-            const old_value = structuredClone(this.value);
-            this.value = parseFloat(input.value);
+        if (typeof this._value === "number") {
+            let input = elem.appendChild(document.createElement("input"));
+            input.className = "control";
+            input.type = "range";
 
-            if (this.listener !== null) {
-                this.listener(this, old_value, this.value);
-            }
-        });
+            input.min = ((this._config.min || 0.) as number).toString();
+            input.max = ((this._config.max || 1.) as number).toString();
+            input.step = ((this._config.step || .001) as number).toString();
+            input.value = this._value.toString();
+            input.addEventListener("input", () => {
+                const old_value = deep_clone(this._value);
+                this._value = parseFloat(input.value);
 
-        this.element.replaceWith(elem);
+                if (this._change_event !== null) {
+                    this._change_event(this, old_value, this._value, false);
+                }
+            });
+        }
+        else if (this._value instanceof Vec2) {
+            let input_x = elem.appendChild(document.createElement("input"));
+            input_x.className = "control";
+            input_x.type = "range";
+            input_x.min = ((this._config.min || 0.) as number).toString();
+            input_x.max = ((this._config.max || 1.) as number).toString();
+            input_x.step = ((this._config.step || .001) as number).toString();
+            input_x.value = this._value.toString();
+            input_x.addEventListener("input", () => {
+                const old_value = deep_clone(this._value);
+                (this._value as Vec2).x = parseFloat(input_x.value);
+
+                if (this._change_event !== null) {
+                    this._change_event(this, old_value, this._value, false);
+                }
+            });
+
+            let input_y = elem.appendChild(document.createElement("input"));
+            input_y.className = "control";
+            input_y.type = "range";
+            input_y.min = input_x.min;
+            input_y.max = input_x.max;
+            input_y.step = input_x.step;
+            input_y.value = this._value.toString();
+            input_y.addEventListener("input", () => {
+                const old_value = deep_clone(this._value);
+                (this._value as Vec2).y = parseFloat(input_y.value);
+
+                if (this._change_event !== null) {
+                    this._change_event(this, old_value, this._value, false);
+                }
+            });
+        }
+        else {
+            throw new Error("unsupported value type");
+        }
+
+        this._element.replaceWith(elem);
+
+        if (this._render_event !== null) {
+            this._render_event(this);
+        }
     }
 
     render() {
-        if (this.element === null) {
+        if (this._element === null) {
             return;
         }
 
-        if (!this.element.hasAttribute("has-ever-rendered")) {
+        if (!this._element.hasAttribute("has-ever-rendered")) {
             this.render_from_scratch();
-        } else {
-            let input = this.element.getElementsByTagName("input")[0];
-            input.value = this.value.toString();
-        }
-    }
-}
-
-class Vec2Param extends Param {
-    value: Vec2;
-    min: number;
-    max: number;
-    step: number;
-    listener: ParamListener<Vec2Param, Vec2> | null;
-
-    constructor(
-        id: string,
-        name: string,
-        element: HTMLElement | "use-id" | null,
-        value: Vec2,
-        min: number,
-        max: number,
-        step: number,
-        listener: ParamListener<Vec2Param, Vec2> | null
-    ) {
-        super(id, name, element);
-        this.value = value;
-        this.min = min;
-        this.max = max;
-        this.step = step;
-        this.listener = listener;
-    }
-
-    render_from_scratch() {
-        if (this.element === null) {
             return;
         }
 
-        let elem = document.createElement("div");
-        elem.toggleAttribute("has-ever-rendered", true);
-        elem.className = "control-container";
-
-        let label = elem.appendChild(document.createElement("div"));
-        label.className = "control-label";
-        label.textContent = this.name;
-
-        let input_x = elem.appendChild(document.createElement("input"));
-        input_x.className = "control";
-        input_x.type = "range";
-        input_x.min = this.min.toString();
-        input_x.max = this.max.toString();
-        input_x.step = this.step.toString();
-        input_x.value = this.value.toString();
-        input_x.addEventListener("input", () => {
-            const old_value = structuredClone(this.value);
-            this.value.x = parseFloat(input_x.value);
-
-            if (this.listener !== null) {
-                this.listener(this, old_value, this.value);
-            }
-        });
-
-        let input_y = elem.appendChild(document.createElement("input"));
-        input_y.className = "control";
-        input_y.type = "range";
-        input_y.min = this.min.toString();
-        input_y.max = this.max.toString();
-        input_y.step = this.step.toString();
-        input_y.value = this.value.toString();
-        input_y.addEventListener("input", () => {
-            const old_value = structuredClone(this.value);
-            this.value.y = parseFloat(input_y.value);
-
-            if (this.listener !== null) {
-                this.listener(this, old_value, this.value);
-            }
-        });
-
-        this.element.replaceWith(elem);
-    }
-
-    render() {
-        if (this.element === null) {
-            return;
+        if (typeof this._value === "number") {
+            let input = this._element.getElementsByTagName("input")[0];
+            input.value = this._value.toString();
+        }
+        else if (this._value instanceof Vec2) {
+            let inputs = this._element.getElementsByTagName("input");
+            inputs[0].value = this._value.x.toString();
+            inputs[1].value = this._value.y.toString();
+        }
+        else {
+            throw new Error("unsupported value type");
         }
 
-        if (!this.element.hasAttribute("has-ever-rendered")) {
-            this.render_from_scratch();
-        } else {
-            let inputs = this.element.getElementsByTagName("input");
-            inputs[0].value = this.value.x.toString();
-            inputs[1].value = this.value.y.toString();
+        if (this._render_event !== null) {
+            this._render_event(this);
         }
     }
 }
@@ -231,7 +263,7 @@ class ParamList {
 
     add(new_param: Param) {
         for (const param of this.params) {
-            if (param.id == new_param.id) {
+            if (param.id() === new_param.id()) {
                 throw new Error(
                     "another parameter with the same ID is already in the list"
                 );
@@ -244,7 +276,7 @@ class ParamList {
 
     get(id: string): Param | null {
         for (const param of this.params) {
-            if (param.id === id) {
+            if (param.id() === id) {
                 return param;
             }
         }
@@ -258,307 +290,286 @@ class ParamList {
     }
 }
 
-var state = {};
+interface State {
+    canvas_ready: boolean,
+    canvas: HTMLCanvasElement | null,
+    gl: WebGL2RenderingContext | null,
+    program: WebGLProgram | null,
+    vbo: WebGLBuffer | null
+}
+
+var state: State = {
+    canvas_ready: false,
+    canvas: null,
+    gl: null,
+    program: null,
+    vbo: null
+};
+
 var param_list = new ParamList();
-param_list.add(new Vec2Param(
-    "tile_size",
-    "Tile Size",
-    "use-id",
-    { x: 200., y: 400. },
-    10.,
-    1000.,
-    1.,
-    () => render_canvas()
-));
-param_list.add(new NumberParam(
-    "border_thickness",
-    "Border Thickness",
-    "use-id",
-    3.,
-    0.,
-    20.,
-    .25,
-    () => render_canvas()
-));
-param_list.add(new NumberParam(
-    "grid_lines_density",
-    "Density",
-    "use-id",
-    200.,
-    1.,
-    2000.,
-    1.,
-    () => render_canvas()
-));
-param_list.add(new NumberParam(
-    "grid_lines_thickness",
-    "Thickness",
-    "use-id",
-    1.,
-    0.,
-    20.,
-    .25,
-    () => render_canvas()
-));
-param_list.add(new NumberParam(
-    "grid_lines_opacity_horizontal",
-    "Horizontal Lines",
-    "use-id",
-    0.,
-    0.,
-    1.,
-    .001,
-    () => render_canvas()
-));
-param_list.add(new NumberParam(
-    "grid_lines_opacity_vertical",
-    "Vertical Lines",
-    "use-id",
-    .05,
-    0.,
-    1.,
-    .001,
-    () => render_canvas()
-));
-
-
-param_list.add(new NumberParam(
-    "masjad_position",
-    "Position",
-    "use-id",
-    .125,
-    0.,
-    .5,
-    .001,
-    () => render_canvas()
-));
-param_list.add(new NumberParam(
-    "masjad_radius",
-    "Radius",
-    "use-id",
-    .05,
-    0.,
-    .5,
-    .001,
-    () => render_canvas()
-));
-param_list.add(new NumberParam(
-    "feet_vertical_position",
-    "Position",
-    "use-id",
-    .2,
-    0.,
-    .5,
-    .001,
-    () => render_canvas()
-));
-param_list.add(new NumberParam(
-    "feet_horizontal_distance",
-    "Distance",
-    "use-id",
-    .12,
-    0.,
-    .3,
-    .001,
-    () => render_canvas()
-));
-param_list.add(new Vec2Param(
-    "feet_size",
-    "Size",
-    "use-id",
-    { x: .05, y: .13 },
-    0.,
-    .3,
-    .001,
-    () => render_canvas()
-));
-param_list.add(new Vec2Param(
-    "transform_scale",
-    "Scale",
-    "use-id",
-    { x: 1., y: 1. },
-    .1,
-    3.,
-    .001,
-    () => render_canvas()
-));
-param_list.add(new Vec2Param(
-    "transform_skew",
-    "Skew",
-    "use-id",
-    { x: 0., y: 0. },
-    -1.,
-    1.,
-    .001,
-    () => render_canvas()
-));
-param_list.add(new NumberParam(
-    "transform_rotation",
-    "Rotation",
-    "use-id",
-    0.,
-    -180.,
-    180.,
-    .001,
-    () => render_canvas()
-));
-param_list.add(new Vec2Param(
-    "transform_offset",
-    "Offset",
-    "use-id",
-    { x: 0., y: 0. },
-    -200.,
-    200.,
-    .25,
-    () => render_canvas()
-));
-param_list.add(new NumberParam(
-    "background_color_h",
-    "Hue",
-    "use-id",
-    0.,
-    0.,
-    1.,
-    .001,
-    () => render_canvas()
-));
-param_list.add(new NumberParam(
-    "background_color_s",
-    "Saturation",
-    "use-id",
-    0.,
-    0.,
-    1.,
-    .001,
-    () => render_canvas()
-));
-param_list.add(new NumberParam(
-    "background_color_v",
-    "Value",
-    "use-id",
-    0.,
-    0.,
-    1.,
-    .001,
-    () => render_canvas()
-));
-param_list.add(new NumberParam(
-    "pattern_color_h",
-    "Hue",
-    "use-id",
-    0.,
-    0.,
-    1.,
-    .001,
-    () => render_canvas()
-));
-param_list.add(new NumberParam(
-    "pattern_color_s",
-    "Saturation",
-    "use-id",
-    0.,
-    0.,
-    1.,
-    .001,
-    () => render_canvas()
-));
-param_list.add(new NumberParam(
-    "pattern_color_v",
-    "Value",
-    "use-id",
-    1.,
-    0.,
-    1.,
-    .001,
-    () => render_canvas()
-));
-
-var default_params: Param[] = param_list.params.slice()
+var default_params: Param[] = []; // backup of the initial values
 
 function reset_params() {
-    for (const param of default_params){
-        param_list.get(param.id)?.
+    for (const param of default_params) {
+        param_list.get(param.id())!.set(param.get())
     }
-    param_list = Object.assign({}, _default_params);
-    render();
+    render_canvas();
 }
 
-function read_param_value(param_name, param_index = -1, element_id = null) {
-    let elem = null;
-    if (!element_id || element_id.length < 1) {
-        elem = document.getElementById(param_name)
-    }
-    else {
-        elem = document.getElementById(element_id);
-    }
+function init() {
+    // add parameters
+    param_list.add(new Param(
+        "tile_size",
+        "Tile Size",
+        new Vec2(200., 400.),
+        "use-id",
+        () => render_canvas(),
+        null,
+        { min: 10., max: 1000., step: 1. }
+    ));
+    param_list.add(new Param(
+        "border_thickness",
+        "Border Thickness",
+        3.,
+        "use-id",
+        () => render_canvas(),
+        null,
+        { min: 0., max: 20., step: .25 }
+    ));
+    param_list.add(new Param(
+        "grid_lines_density",
+        "Density",
+        400.,
+        "use-id",
+        () => render_canvas(),
+        null,
+        { min: 1., max: 2000., step: 1. }
+    ));
+    param_list.add(new Param(
+        "grid_lines_thickness",
+        "Thickness",
+        1.,
+        "use-id",
+        () => render_canvas(),
+        null,
+        { min: 0., max: 20., step: .25 }
+    ));
+    param_list.add(new Param(
+        "grid_lines_opacity_horizontal",
+        "Horizontal Lines",
+        0.,
+        "use-id",
+        () => render_canvas(),
+        null,
+        { min: 0., max: 1., step: .001 }
+    ));
+    param_list.add(new Param(
+        "grid_lines_opacity_vertical",
+        "Vertical Lines",
+        .05,
+        "use-id",
+        () => render_canvas(),
+        null,
+        { min: 0., max: 1., step: .001 }
+    ));
+    param_list.add(new Param(
+        "masjad_position",
+        "Position",
+        .125,
+        "use-id",
+        () => render_canvas(),
+        null,
+        { min: 0., max: .5, step: .001 }
+    ));
+    param_list.add(new Param(
+        "masjad_radius",
+        "Radius",
+        .05,
+        "use-id",
+        () => render_canvas(),
+        null,
+        { min: 0., max: .5, step: .001 }
+    ));
+    param_list.add(new Param(
+        "feet_vertical_position",
+        "Position",
+        .2,
+        "use-id",
+        () => render_canvas(),
+        null,
+        { min: 0., max: .5, step: .001 }
+    ));
+    param_list.add(new Param(
+        "feet_horizontal_distance",
+        "Distance",
+        .12,
+        "use-id",
+        () => render_canvas(),
+        null,
+        { min: 0., max: .3, step: .001 }
+    ));
+    param_list.add(new Param(
+        "feet_thickness",
+        "Thickness",
+        1.,
+        "use-id",
+        () => render_canvas(),
+        null,
+        { min: 0., max: 20., step: .25 }
+    ));
+    param_list.add(new Param(
+        "feet_opacity",
+        "Opacity",
+        1.,
+        "use-id",
+        () => render_canvas(),
+        null,
+        { min: 0., max: 1., step: .001 }
+    ));
+    param_list.add(new Param(
+        "feet_size",
+        "Size",
+        new Vec2(.05, .13),
+        "use-id",
+        () => render_canvas(),
+        null,
+        { min: 0., max: .3, step: .001 }
+    ));
+    param_list.add(new Param(
+        "transform_scale",
+        "Scale",
+        new Vec2(1., 1.),
+        "use-id",
+        () => render_canvas(),
+        null,
+        { min: .1, max: 3., step: .001 }
+    ));
+    param_list.add(new Param(
+        "transform_skew",
+        "Skew",
+        new Vec2(0., 0.),
+        "use-id",
+        () => render_canvas(),
+        null,
+        { min: -1., max: 1., step: .001 }
+    ));
+    param_list.add(new Param(
+        "transform_rotation",
+        "Rotation",
+        0.,
+        "use-id",
+        () => render_canvas(),
+        null,
+        { min: -180., max: 180., step: .001 }
+    ));
+    param_list.add(new Param(
+        "transform_offset",
+        "Offset",
+        new Vec2(0., 0.),
+        "use-id",
+        () => render_canvas(),
+        null,
+        { min: -200., max: 200., step: .25 }
+    ));
+    param_list.add(new Param(
+        "background_color_h",
+        "Hue",
+        0.,
+        "use-id",
+        () => { update_color_blobs(); render_canvas(); },
+        () => update_color_blobs(),
+        { min: 0., max: 1., step: .001 }
+    ));
+    param_list.add(new Param(
+        "background_color_s",
+        "Saturation",
+        0.,
+        "use-id",
+        () => { update_color_blobs(); render_canvas(); },
+        () => update_color_blobs(),
+        { min: 0., max: 1., step: .001 }
+    ));
+    param_list.add(new Param(
+        "background_color_v",
+        "Value",
+        0.,
+        "use-id",
+        () => { update_color_blobs(); render_canvas(); },
+        () => update_color_blobs(),
+        { min: 0., max: 1., step: .001 }
+    ));
+    param_list.add(new Param(
+        "pattern_color_h",
+        "Hue",
+        0.,
+        "use-id",
+        () => { update_color_blobs(); render_canvas(); },
+        () => update_color_blobs(),
+        { min: 0., max: 1., step: .001 }
+    ));
+    param_list.add(new Param(
+        "pattern_color_s",
+        "Saturation",
+        0.,
+        "use-id",
+        () => { update_color_blobs(); render_canvas(); },
+        () => update_color_blobs(),
+        { min: 0., max: 1., step: .001 }
+    ));
+    param_list.add(new Param(
+        "pattern_color_v",
+        "Value",
+        1.,
+        "use-id",
+        () => { update_color_blobs(); render_canvas(); },
+        () => update_color_blobs(),
+        { min: 0., max: 1., step: .001 }
+    ));
 
-    if (!elem) {
-        return;
-    }
+    // make a copy of the initial values to use in reset_params()
+    default_params = deep_clone(param_list.params);
 
-    if (param_index < 0) {
-        param_list[param_name] = elem.value;
-    } else {
-        param_list[param_name][param_index] = elem.value;
-    }
+    // render
+    init_canvas();
+    render_canvas();
 }
 
-function params_changed() {
-    read_param_value("tile_size", 0, "tile_size_x");
-    read_param_value("tile_size", 1, "tile_size_y");
-    read_param_value("border_thickness");
+function viewport_resized() {
+    init_canvas();
+    render_canvas();
+}
 
-    read_param_value("grid_lines_density");
-    read_param_value("grid_lines_thickness");
-    read_param_value("grid_lines_opacity_horizontal");
-    read_param_value("grid_lines_opacity_vertical");
+function update_color_blobs() {
+    let background_color = view_transform(hsv_to_rgb([
+        (param_list.get("background_color_h")?.get() || 0.) as number,
+        (param_list.get("background_color_s")?.get() || 0.) as number,
+        (param_list.get("background_color_v")?.get() || 0.) as number
+    ]));
+    let pattern_color = view_transform(hsv_to_rgb([
+        (param_list.get("pattern_color_h")?.get() || 0.) as number,
+        (param_list.get("pattern_color_s")?.get() || 0.) as number,
+        (param_list.get("pattern_color_v")?.get() || 0.) as number
+    ]));
 
-    read_param_value("masjad_position");
-    read_param_value("masjad_radius");
-
-    read_param_value("feet_vertical_position");
-    read_param_value("feet_horizontal_distance");
-    read_param_value("feet_size", 0, "feet_size_x");
-    read_param_value("feet_size", 1, "feet_size_y");
-    read_param_value("feet_thickness");
-    read_param_value("feet_opacity");
-
-    read_param_value("transform_scale", 0, "transform_scale_x");
-    read_param_value("transform_scale", 1, "transform_scale_y");
-    read_param_value("transform_skew", 0, "transform_skew_x");
-    read_param_value("transform_skew", 1, "transform_skew_y");
-    read_param_value("transform_rotation");
-    read_param_value("transform_offset", 0, "transform_offset_x");
-    read_param_value("transform_offset", 1, "transform_offset_y");
-
-    read_param_value("background_color_hsv", 0, "background_color_h");
-    read_param_value("background_color_hsv", 1, "background_color_s");
-    read_param_value("background_color_hsv", 2, "background_color_v");
-    read_param_value("pattern_color_hsv", 0, "pattern_color_h");
-    read_param_value("pattern_color_hsv", 1, "pattern_color_s");
-    read_param_value("pattern_color_hsv", 2, "pattern_color_v");
-
-    let background_color = view_transform(hsv_to_rgb(param_list.background_color_hsv));
-    let pattern_color = view_transform(hsv_to_rgb(param_list.pattern_color_hsv));
-    document.getElementById("background_color_blob").style.backgroundColor =
+    document.getElementById("background_color_blob")!.style.backgroundColor =
         `rgb(${background_color.join(", ")})`;
-    document.getElementById("pattern_color_blob").style.backgroundColor =
+    document.getElementById("pattern_color_blob")!.style.backgroundColor =
         `rgb(${pattern_color.join(", ")})`;
-
-    render();
 }
 
 function init_canvas() {
     state.canvas_ready = false;
 
     // try to get WebGL2 context
-    state.canvas = document.getElementById("canvas");
+    state.canvas = document.getElementById("canvas") as HTMLCanvasElement;
     state.gl = state.canvas.getContext("webgl2");
     if (state.gl) {
-        document.getElementById("error-message").style.visibility = "collapse";
+        document.getElementById("error-message")!.style.visibility = "collapse";
     }
     else {
-        document.getElementById("error-message").style.visibility = "visible";
+        console.error("failed to get WebGL2 rendering context");
+        document.getElementById("error-message")!.style.visibility = "visible";
+        document.getElementById("controls")!.style.visibility = "collapse";
         return;
     }
 
@@ -566,14 +577,14 @@ function init_canvas() {
     const dpr = window.devicePixelRatio || 1;
     state.canvas.width = Math.floor(document.body.clientWidth * dpr);
     state.canvas.height = Math.floor(document.body.clientHeight * dpr);
-    state.gl.viewport(0, 0, canvas.width, canvas.height);
+    state.gl.viewport(0, 0, state.canvas.width, state.canvas.height);
 
     // high DPI nonsense
     state.canvas.style.width = `${Math.floor(state.canvas.width / dpr)}px`;
     state.canvas.style.height = `${Math.floor(state.canvas.height / dpr)}px`;
 
     // vertex shader
-    const vertex_source = `#version 300 es
+    const vertex_source: string = `#version 300 es
 in vec2 a_position;
 out vec2 v_uv;
 
@@ -584,7 +595,7 @@ void main() {
 `;
 
     // fragment shader
-    const fragment_source = `#version 300 es
+    const fragment_source: string = `#version 300 es
 
 precision highp float;
 precision highp int;
@@ -886,16 +897,17 @@ vec3 render(vec2 coord)
         );
 
         vec2 ellipse_radius = feet_size * overall_scale;
+        float half_thickness = feet_thickness * .5;
 
         float sd = min(
             abs(sd_ellipse(
                 tile_coord - left_ellipse_center,
                 ellipse_radius
-            )) - feet_thickness,
+            )) - half_thickness,
             abs(sd_ellipse(
                 tile_coord - right_ellipse_center,
                 ellipse_radius
-            )) - feet_thickness
+            )) - half_thickness
         );
 
         v = max(v, step(sd, 0.) * feet_opacity);
@@ -940,40 +952,54 @@ void main()
 }
 `;
 
-    // create graphics program (pipeline)
-    state.program = create_program(vertex_source, fragment_source);
+    try {
+        // create graphics program (pipeline)
+        state.program = create_program(vertex_source, fragment_source);
 
-    // fullscreen quad [-1, -1] to [1, 1]
-    const quad_verts = new Float32Array([
-        -1, -1,
-        1, -1,
-        -1, 1,
-        -1, 1,
-        1, -1,
-        1, 1
-    ]);
+        // fullscreen quad [-1, -1] to [1, 1]
+        const quad_verts = new Float32Array([
+            -1, -1,
+            1, -1,
+            -1, 1,
+            -1, 1,
+            1, -1,
+            1, 1
+        ]);
 
-    // create vertex buffer object (VBO)
-    state.vbo = state.gl.createBuffer();
-    if (!state.vbo) {
-        throw new Error("failed to create empty buffer");
+        // create vertex buffer object (VBO)
+        state.vbo = state.gl.createBuffer();
+        if (!state.vbo) {
+            throw new Error("failed to create empty buffer");
+        }
+        state.gl.bindBuffer(WebGL2RenderingContext.ARRAY_BUFFER, state.vbo);
+        state.gl.bufferData(
+            WebGL2RenderingContext.ARRAY_BUFFER,
+            quad_verts,
+            WebGL2RenderingContext.STATIC_DRAW
+        );
+
+        // define vertex attributes layout in the VBO
+        const position_loc =
+            state.gl.getAttribLocation(state.program, "a_position");
+        state.gl.enableVertexAttribArray(position_loc);
+        state.gl.vertexAttribPointer(
+            position_loc,
+            2,
+            WebGL2RenderingContext.FLOAT,
+            false,
+            0,
+            0
+        );
+
+        // update state
+        state.canvas_ready = true;
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            console.error("failed to initialize canvas: ", error.message);
+        } else {
+            console.error("failed to initialize canvas: ", error);
+        }
     }
-    state.gl.bindBuffer(state.gl.ARRAY_BUFFER, state.vbo);
-    state.gl.bufferData(
-        state.gl.ARRAY_BUFFER,
-        quad_verts,
-        state.gl.STATIC_DRAW
-    );
-
-    // define vertex attributes layout in the VBO
-    const position_loc = state.gl.getAttribLocation(state.program, "a_position");
-    state.gl.enableVertexAttribArray(position_loc);
-    state.gl.vertexAttribPointer(position_loc, 2, state.gl.FLOAT, false, 0, 0);
-
-    // update state
-    state.canvas_ready = true;
-
-    params_changed();
 }
 
 function render_canvas() {
@@ -983,86 +1009,185 @@ function render_canvas() {
     }
 
     // bind graphics program (pipeline)
-    state.gl.useProgram(state.program);
+    state.gl!.useProgram(state.program);
 
     // set uniforms
     {
         // render resolution
-        set_uniform(state.program, "res", "2f", [state.canvas.width, state.canvas.height]);
+        set_uniform(
+            state.program!,
+            "res",
+            new Vec2(state.canvas!.width, state.canvas!.height)
+        );
 
         // tile
-        set_uniform(state.program, "tile_size", "2f", param_list.tile_size);
-        set_uniform(state.program, "border_thickness", "1f", param_list.border_thickness);
+        set_uniform(
+            state.program!,
+            "tile_size",
+            param_list.get("tile_size")!.get() as Vec2
+        );
+        set_uniform(
+            state.program!,
+            "border_thickness",
+            param_list.get("border_thickness")!.get() as number
+        );
 
         // grid lines
-        set_uniform(state.program, "grid_lines_density", "1f", param_list.grid_lines_density);
-        set_uniform(state.program, "grid_lines_thickness", "1f", param_list.grid_lines_thickness);
-        set_uniform(state.program, "grid_lines_opacity_horizontal", "1f", param_list.grid_lines_opacity_horizontal);
-        set_uniform(state.program, "grid_lines_opacity_vertical", "1f", param_list.grid_lines_opacity_vertical);
+        set_uniform(
+            state.program!,
+            "grid_lines_density",
+            param_list.get("grid_lines_density")!.get() as number
+        );
+        set_uniform(
+            state.program!,
+            "grid_lines_thickness",
+            param_list.get("grid_lines_thickness")!.get() as number
+        );
+        set_uniform(
+            state.program!,
+            "grid_lines_opacity_horizontal",
+            param_list.get("grid_lines_opacity_horizontal")!.get() as number
+        );
+        set_uniform(
+            state.program!,
+            "grid_lines_opacity_vertical",
+            param_list.get("grid_lines_opacity_vertical")!.get() as number
+        );
 
         // masjad
-        set_uniform(state.program, "masjad_position", "1f", param_list.masjad_position);
-        set_uniform(state.program, "masjad_radius", "1f", param_list.masjad_radius);
+        set_uniform(
+            state.program!,
+            "masjad_position",
+            param_list.get("masjad_position")!.get() as number
+        );
+        set_uniform(
+            state.program!,
+            "masjad_radius",
+            param_list.get("masjad_radius")!.get() as number
+        );
 
         // feet
-        set_uniform(state.program, "feet_vertical_position", "1f", param_list.feet_vertical_position);
-        set_uniform(state.program, "feet_horizontal_distance", "1f", param_list.feet_horizontal_distance);
-        set_uniform(state.program, "feet_size", "2f", param_list.feet_size);
-        set_uniform(state.program, "feet_thickness", "1f", param_list.feet_thickness);
-        set_uniform(state.program, "feet_opacity", "1f", param_list.feet_opacity);
+        set_uniform(
+            state.program!,
+            "feet_vertical_position",
+            param_list.get("feet_vertical_position")!.get() as number
+        );
+        set_uniform(
+            state.program!,
+            "feet_horizontal_distance",
+            param_list.get("feet_horizontal_distance")!.get() as number
+        );
+        set_uniform(
+            state.program!,
+            "feet_size",
+            param_list.get("feet_size")!.get() as Vec2
+        );
+        set_uniform(
+            state.program!,
+            "feet_thickness",
+            param_list.get("feet_thickness")!.get() as number
+        );
+        set_uniform(
+            state.program!,
+            "feet_opacity",
+            param_list.get("feet_opacity")!.get() as number
+        );
 
         // transform
-        set_uniform(state.program, "transform_scale", "2f", param_list.transform_scale);
-        set_uniform(state.program, "transform_skew", "2f", param_list.transform_skew);
-        set_uniform(state.program, "transform_rotation", "1f", param_list.transform_rotation);
-        set_uniform(state.program, "transform_offset", "2f", param_list.transform_offset);
+        set_uniform(
+            state.program!,
+            "transform_scale",
+            param_list.get("transform_scale")!.get() as Vec2
+        );
+        set_uniform(
+            state.program!,
+            "transform_skew",
+            param_list.get("transform_skew")!.get() as Vec2
+        );
+        set_uniform(
+            state.program!,
+            "transform_rotation",
+            param_list.get("transform_rotation")!.get() as number
+        );
+        set_uniform(
+            state.program!,
+            "transform_offset",
+            param_list.get("transform_offset")!.get() as Vec2
+        );
 
         // colors
-        let background_color = hsv_to_rgb(param_list.background_color_hsv);
-        let pattern_color = hsv_to_rgb(param_list.pattern_color_hsv);
-        set_uniform(state.program, "background_color", "3f", background_color);
-        set_uniform(state.program, "pattern_color", "3f", pattern_color);
+        let background_color = hsv_to_rgb([
+            param_list.get("background_color_h")!.get() as number,
+            param_list.get("background_color_s")!.get() as number,
+            param_list.get("background_color_v")!.get() as number
+        ]);
+        let pattern_color = hsv_to_rgb([
+            param_list.get("pattern_color_h")!.get() as number,
+            param_list.get("pattern_color_s")!.get() as number,
+            param_list.get("pattern_color_v")!.get() as number
+        ]);
+        set_uniform(
+            state.program!,
+            "background_color",
+            arr_to_vec3(background_color)
+        );
+        set_uniform(
+            state.program!,
+            "pattern_color",
+            arr_to_vec3(pattern_color)
+        );
     }
 
     // bind VBO
-    state.gl.bindBuffer(state.gl.ARRAY_BUFFER, state.vbo);
+    state.gl!.bindBuffer(WebGL2RenderingContext.ARRAY_BUFFER, state.vbo);
 
     // draw
-    state.gl.clearColor(0, 0, 0, 1);
-    state.gl.clear(state.gl.COLOR_BUFFER_BIT);
-    state.gl.drawArrays(state.gl.TRIANGLES, 0, 6);
+    state.gl!.clearColor(0, 0, 0, 1);
+    state.gl!.clear(WebGL2RenderingContext.COLOR_BUFFER_BIT);
+    state.gl!.drawArrays(WebGL2RenderingContext.TRIANGLES, 0, 6);
 }
 
-function create_shader(type, source) {
-    const shader = state.gl.createShader(type);
+function create_shader(type: number, source: string): WebGLShader {
+    const shader = state.gl!.createShader(type);
     if (!shader) {
         throw new Error(`failed to create empty shader of type ${type}`);
     }
 
-    state.gl.shaderSource(shader, source);
-    state.gl.compileShader(shader);
-    if (!state.gl.getShaderParameter(shader, state.gl.COMPILE_STATUS)) {
-        const info = state.gl.getShaderInfoLog(shader);
+    state.gl!.shaderSource(shader, source);
+    state.gl!.compileShader(shader);
+    if (!state.gl!.getShaderParameter(
+        shader,
+        WebGL2RenderingContext.COMPILE_STATUS
+    )) {
+        const info = state.gl!.getShaderInfoLog(shader) || "(no info)";
         throw new Error(`failed to compile shader of type ${type}: ${info}`);
     }
 
     return shader;
 }
 
-function create_program(vertex_source, fragment_source) {
-    const vs = create_shader(state.gl.VERTEX_SHADER, vertex_source);
-    const fs = create_shader(state.gl.FRAGMENT_SHADER, fragment_source);
+function create_program(
+    vertex_source: string,
+    fragment_source: string
+): WebGLProgram {
+    const program: WebGLProgram = state.gl!.createProgram();
+    const vs = create_shader(
+        WebGL2RenderingContext.VERTEX_SHADER,
+        vertex_source
+    );
+    const fs = create_shader(
+        WebGL2RenderingContext.FRAGMENT_SHADER,
+        fragment_source
+    );
 
-    const program = state.gl.createProgram();
-    if (!program) {
-        throw new Error("failed to create empty graphics program");
-    }
-
-    state.gl.attachShader(program, vs);
-    state.gl.attachShader(program, fs);
-    state.gl.linkProgram(program);
-    if (!state.gl.getProgramParameter(program, state.gl.LINK_STATUS)) {
-        const info = state.gl.getProgramInfoLog(program);
+    state.gl!.attachShader(program, vs);
+    state.gl!.attachShader(program, fs);
+    state.gl!.linkProgram(program);
+    if (!state.gl!.getProgramParameter(
+        program,
+        WebGL2RenderingContext.LINK_STATUS
+    )) {
+        const info = state.gl!.getProgramInfoLog(program) || "(no info)";
         throw new Error(`failed to link graphics program: ${info}`);
     }
 
@@ -1071,49 +1196,43 @@ function create_program(vertex_source, fragment_source) {
 
 // example dimensions: 1f (float), 3i (ivec3), basically the suffix after
 // "gl.uniform".
-function set_uniform(program, name, dimensions, value) {
-    const location = state.gl.getUniformLocation(program, name);
+function set_uniform(
+    program: WebGLProgram,
+    name: string,
+    value: number | Vec2 | Vec3
+): boolean {
+    const location = state.gl!.getUniformLocation(program, name);
     if (!location) {
         return false;
     }
 
-    if (!state.gl[`uniform${dimensions}`]) {
-        throw new RangeError(
-            `invalid dimensions for shader uniform: "${dimensions}"`
-        );
+    if (typeof value === "number") {
+        state.gl!.uniform1f(location, value);
+    } else if (value instanceof Vec2) {
+        state.gl!.uniform2f(location, value.x, value.y);
+    } else if (value instanceof Vec3) {
+        state.gl!.uniform3f(location, value.x, value.y, value.z);
+    } else {
+        throw new Error("unsupported uniform type");
     }
 
-    if (dimensions[0] === '1') {
-        state.gl[`uniform${dimensions}`](location, value);
-    }
-    else if (dimensions[0] === '2') {
-        state.gl[`uniform${dimensions}`](location, value[0], value[1]);
-    }
-    else if (dimensions[0] === '3') {
-        state.gl[`uniform${dimensions}`](location, value[0], value[1], value[2]);
-    }
-    else if (dimensions[0] === '4') {
-        state.gl[`uniform${dimensions}`](location, value[0], value[1], value[2], value[3]);
-    }
-    else {
-        throw new RangeError(
-            `invalid dimensions for shader uniform: "${dimensions}"`
-        );
-    }
     return true;
 }
 
-function clamp01(v) {
+function clamp01(v: number): number {
     return Math.min(Math.max(v, 0.), 1.);
 }
 
-function view_transform(rgb) {
+function view_transform(rgb: number[]): number[] {
     return rgb.map(v => Math.round(255. * Math.pow(clamp01(v), 1. / 2.2)));
 }
 
 // source (minor tweaks): https://stackoverflow.com/a/17243070
-function hsv_to_rgb(hsv) {
-    let h = clamp01(hsv[0]), s = clamp01(hsv[1]), v = clamp01(hsv[2]);
+function hsv_to_rgb(hsv: number[]): number[] {
+    let h = clamp01(hsv[0]);
+    let s = clamp01(hsv[1]);
+    let v = clamp01(hsv[2]);
+
     let r = 0, g = 0, b = 0;
     let i = Math.floor(h * 6);
     let f = h * 6 - i;
@@ -1129,4 +1248,56 @@ function hsv_to_rgb(hsv) {
         case 5: r = v, g = p, b = q; break;
     }
     return [r, g, b];
+}
+
+function deep_clone<T>(v: T): T {
+    // null or primitive types
+    if (v === null || typeof v !== 'object') {
+        return v;
+    }
+
+    // built-in types that should be copied by constructor
+    if (v instanceof Date) {
+        return new Date(v.getTime()) as T;
+    }
+    /*if (v instanceof RegExp) {
+        return new RegExp(v.source, v.flags) as T;
+    }*/
+
+    // arrays
+    if (Array.isArray(v)) {
+        return v.map(item => deep_clone(item)) as T;
+    }
+
+    // at this point, v is either a class instance of a plain object, so let's
+    // check that.
+    const proto = Object.getPrototypeOf(v);
+    const is_plain: boolean = (proto === Object.prototype || proto === null);
+
+    // class instance (non-plain objects)
+    if (!is_plain) {
+        const cloned_instance = Object.create(proto);
+        for (const key of Object.getOwnPropertyNames(v)) {
+            cloned_instance[key] = deep_clone((v as any)[key]);
+        }
+        return cloned_instance as T;
+    }
+
+    // try structuredClone() for plain objects
+    if (typeof structuredClone === 'function') {
+        try {
+            return structuredClone(v);
+        } catch {
+            // fallback below
+        }
+    }
+
+    // fallback if structuredClone() failed
+    const clone: any = {};
+    for (const key in v) {
+        if (Object.prototype.hasOwnProperty.call(v, key)) {
+            clone[key] = deep_clone((v as any)[key]);
+        }
+    }
+    return clone;
 }
