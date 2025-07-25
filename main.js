@@ -95,23 +95,19 @@ var Param = /** @class */ (function () {
         }
         this.render();
     };
-    Param.prototype.get_string = function () {
+    Param.prototype.number_to_str = function (v) {
+        var s_value;
+        if (typeof this._config.decimal_digits === "number") {
+            s_value = v.toFixed(this._config.decimal_digits);
+        }
+        else {
+            s_value = v.toString();
+        }
         var unit_str = "";
         if (typeof (this._config.value_unit) === "string") {
             unit_str = " " + this._config.value_unit;
         }
-        if (typeof this._value === "number") {
-            var s_value = number_to_str(this._value, this._config.decimal_digits);
-            return s_value + unit_str;
-        }
-        else if (this._value instanceof Vec2) {
-            var s_value_x = number_to_str(this._value.x, this._config.decimal_digits);
-            var s_value_y = number_to_str(this._value.y, this._config.decimal_digits);
-            return "".concat(s_value_x).concat(unit_str, ", ").concat(s_value_y).concat(unit_str);
-        }
-        else {
-            throw new Error("unsupported value type");
-        }
+        return s_value + unit_str;
     };
     Param.prototype.render_from_scratch = function () {
         var _this = this;
@@ -128,46 +124,56 @@ var Param = /** @class */ (function () {
         if (typeof this._value === "number") {
             var slider = elem.appendChild(slider_create((this._config.min || 0.), (this._config.max || 1.), (this._config.step || .001), this._value));
             var indicator_1 = slider_get_indicator(slider);
-            indicator_1.innerHTML = this.get_string();
+            indicator_1.innerHTML = this.number_to_str(this._value);
             var input_1 = slider_get_input(slider);
             input_1.addEventListener("input", function () {
                 var old_value = deep_clone(_this._value);
                 _this._value = parseFloat(input_1.value);
-                indicator_1.innerHTML = _this.get_string();
+                indicator_1.innerHTML = _this.number_to_str(_this._value);
                 if (_this._change_event !== null) {
                     _this._change_event(_this, old_value, _this._value, false);
                 }
             });
         }
         else if (this._value instanceof Vec2) {
-            var input_x_1 = elem.appendChild(document.createElement("input"));
-            input_x_1.className = "control";
-            input_x_1.type = "range";
-            input_x_1.min = (this._config.min || 0.).toString();
-            input_x_1.max = (this._config.max || 1.).toString();
-            input_x_1.step = (this._config.step || .001).toString();
-            input_x_1.value = this._value.toString();
-            input_x_1.addEventListener("input", function () {
-                var old_value = deep_clone(_this._value);
-                _this._value.x = parseFloat(input_x_1.value);
-                if (_this._change_event !== null) {
-                    _this._change_event(_this, old_value, _this._value, false);
-                }
-            });
-            var input_y_1 = elem.appendChild(document.createElement("input"));
-            input_y_1.className = "control";
-            input_y_1.type = "range";
-            input_y_1.min = input_x_1.min;
-            input_y_1.max = input_x_1.max;
-            input_y_1.step = input_x_1.step;
-            input_y_1.value = this._value.toString();
-            input_y_1.addEventListener("input", function () {
-                var old_value = deep_clone(_this._value);
-                _this._value.y = parseFloat(input_y_1.value);
-                if (_this._change_event !== null) {
-                    _this._change_event(_this, old_value, _this._value, false);
-                }
-            });
+            // x
+            {
+                var slider = elem.appendChild(slider_create((this._config.min || 0.), (this._config.max || 1.), (this._config.step || .001), this._value.x));
+                slider.style.marginInlineEnd = "0.1rem";
+                var indicator_2 = slider_get_indicator(slider);
+                indicator_2.innerHTML = this.number_to_str(this._value.x);
+                var input_2 = slider_get_input(slider);
+                input_2.addEventListener("input", function () {
+                    if (!(_this._value instanceof Vec2)) {
+                        throw new Error("value type has changed!");
+                    }
+                    var old_value = deep_clone(_this._value);
+                    _this._value.x = parseFloat(input_2.value);
+                    indicator_2.innerHTML = _this.number_to_str(_this._value.x);
+                    if (_this._change_event !== null) {
+                        _this._change_event(_this, old_value, _this._value, false);
+                    }
+                });
+            }
+            // y
+            {
+                var slider = elem.appendChild(slider_create((this._config.min || 0.), (this._config.max || 1.), (this._config.step || .001), this._value.y));
+                slider.style.marginInlineStart = "0.1rem";
+                var indicator_3 = slider_get_indicator(slider);
+                indicator_3.innerHTML = this.number_to_str(this._value.y);
+                var input_3 = slider_get_input(slider);
+                input_3.addEventListener("input", function () {
+                    if (!(_this._value instanceof Vec2)) {
+                        throw new Error("value type has changed!");
+                    }
+                    var old_value = deep_clone(_this._value);
+                    _this._value.y = parseFloat(input_3.value);
+                    indicator_3.innerHTML = _this.number_to_str(_this._value.y);
+                    if (_this._change_event !== null) {
+                        _this._change_event(_this, old_value, _this._value, false);
+                    }
+                });
+            }
         }
         else {
             throw new Error("unsupported value type");
@@ -188,15 +194,19 @@ var Param = /** @class */ (function () {
         }
         if (typeof this._value === "number") {
             var slider = this._element.getElementsByClassName("slider-wrapper")[0];
-            var input = slider_get_input(slider);
-            input.value = this._value.toString();
-            var indicator = slider_get_indicator(slider);
-            indicator.innerHTML = this.get_string();
+            slider_get_input(slider).value = this._value.toString();
+            slider_get_indicator(slider).innerHTML =
+                this.number_to_str(this._value);
         }
         else if (this._value instanceof Vec2) {
-            var inputs = this._element.getElementsByTagName("input");
-            inputs[0].value = this._value.x.toString();
-            inputs[1].value = this._value.y.toString();
+            var slider_x = this._element.getElementsByClassName("slider-wrapper")[0];
+            var slider_y = this._element.getElementsByClassName("slider-wrapper")[1];
+            slider_get_input(slider_x).value = this._value.x.toString();
+            slider_get_input(slider_y).value = this._value.y.toString();
+            slider_get_indicator(slider_x).innerHTML =
+                this.number_to_str(this._value.x);
+            slider_get_indicator(slider_y).innerHTML =
+                this.number_to_str(this._value.y);
         }
         else {
             throw new Error("unsupported value type");
@@ -269,8 +279,8 @@ function init() {
     param_list.add(new Param("feet_thickness", "Thickness", 1., "use-id", function () { return render_canvas(); }, null, { min: 0., max: 20., step: .25, value_unit: "px", decimal_digits: 2 }));
     param_list.add(new Param("feet_opacity", "Opacity", 1., "use-id", function () { return render_canvas(); }, null, { min: 0., max: 1., step: .001, decimal_digits: 2 }));
     param_list.add(new Param("feet_size", "Size", new Vec2(.05, .13), "use-id", function () { return render_canvas(); }, null, { min: 0., max: .3, step: .001, decimal_digits: 2 }));
-    param_list.add(new Param("transform_scale", "Scale", new Vec2(1., 1.), "use-id", function () { return render_canvas(); }, null, { min: .1, max: 3., step: .001, decimal_digits: 2 }));
-    param_list.add(new Param("transform_skew", "Skew", new Vec2(0., 0.), "use-id", function () { return render_canvas(); }, null, { min: -1., max: 1., step: .001, decimal_digits: 2 }));
+    param_list.add(new Param("transform_scale", "Scale", new Vec2(1., 1.), "use-id", function () { return render_canvas(); }, null, { min: .1, max: 3., step: .001, decimal_digits: 3 }));
+    param_list.add(new Param("transform_skew", "Skew", new Vec2(0., 0.), "use-id", function () { return render_canvas(); }, null, { min: -1., max: 1., step: .001, decimal_digits: 3 }));
     param_list.add(new Param("transform_rotation", "Rotation", 0., "use-id", function () { return render_canvas(); }, null, { min: -180., max: 180., step: .001, decimal_digits: 2 }));
     param_list.add(new Param("transform_offset", "Offset", new Vec2(0., 0.), "use-id", function () { return render_canvas(); }, null, { min: -200., max: 200., step: .25, value_unit: "px", decimal_digits: 2 }));
     param_list.add(new Param("background_color_h", "Hue", 0., "use-id", function () { update_color_blobs(); render_canvas(); }, function () { return update_color_blobs(); }, { min: 0., max: 1., step: .001, decimal_digits: 2 }));
@@ -579,13 +589,4 @@ function slider_get_input(elem) {
 }
 function slider_get_indicator(elem) {
     return elem.getElementsByTagName("div")[0];
-}
-function number_to_str(v, decimal_digits) {
-    if (decimal_digits === void 0) { decimal_digits = undefined; }
-    if (typeof decimal_digits === "number") {
-        return v.toFixed(decimal_digits);
-    }
-    else {
-        return v.toString();
-    }
 }

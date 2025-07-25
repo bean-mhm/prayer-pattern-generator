@@ -149,28 +149,20 @@ class Param {
         this.render();
     }
 
-    get_string(): string {
+    number_to_str(v: number): string {
+        let s_value: string;
+        if (typeof this._config.decimal_digits === "number") {
+            s_value = v.toFixed(this._config.decimal_digits);
+        } else {
+            s_value = v.toString();
+        }
+
         let unit_str: string = "";
         if (typeof (this._config.value_unit) === "string") {
             unit_str = " " + this._config.value_unit;
         }
 
-        if (typeof this._value === "number") {
-            let s_value: string =
-                number_to_str(this._value, this._config.decimal_digits);
-
-            return s_value + unit_str;
-        } else if (this._value instanceof Vec2) {
-            let s_value_x: string =
-                number_to_str(this._value.x, this._config.decimal_digits);
-
-            let s_value_y: string =
-                number_to_str(this._value.y, this._config.decimal_digits);
-
-            return `${s_value_x}${unit_str}, ${s_value_y}${unit_str}`;
-        } else {
-            throw new Error("unsupported value type");
-        }
+        return s_value + unit_str;
     }
 
     render_from_scratch() {
@@ -196,14 +188,14 @@ class Param {
             ));
 
             let indicator = slider_get_indicator(slider);
-            indicator.innerHTML = this.get_string();
+            indicator.innerHTML = this.number_to_str(this._value);
 
             let input = slider_get_input(slider);
             input.addEventListener("input", () => {
                 const old_value = deep_clone(this._value);
                 this._value = parseFloat(input.value);
 
-                indicator.innerHTML = this.get_string();
+                indicator.innerHTML = this.number_to_str(this._value);
 
                 if (this._change_event !== null) {
                     this._change_event(this, old_value, this._value, false);
@@ -211,37 +203,67 @@ class Param {
             });
         }
         else if (this._value instanceof Vec2) {
-            let input_x = elem.appendChild(document.createElement("input"));
-            input_x.className = "control";
-            input_x.type = "range";
-            input_x.min = ((this._config.min || 0.) as number).toString();
-            input_x.max = ((this._config.max || 1.) as number).toString();
-            input_x.step = ((this._config.step || .001) as number).toString();
-            input_x.value = this._value.toString();
-            input_x.addEventListener("input", () => {
-                const old_value = deep_clone(this._value);
-                (this._value as Vec2).x = parseFloat(input_x.value);
+            // x
+            {
+                let slider = elem.appendChild(slider_create(
+                    (this._config.min || 0.) as number,
+                    (this._config.max || 1.) as number,
+                    (this._config.step || .001) as number,
+                    this._value.x
+                ));
 
-                if (this._change_event !== null) {
-                    this._change_event(this, old_value, this._value, false);
-                }
-            });
+                slider.style.marginInlineEnd = "0.1rem";
 
-            let input_y = elem.appendChild(document.createElement("input"));
-            input_y.className = "control";
-            input_y.type = "range";
-            input_y.min = input_x.min;
-            input_y.max = input_x.max;
-            input_y.step = input_x.step;
-            input_y.value = this._value.toString();
-            input_y.addEventListener("input", () => {
-                const old_value = deep_clone(this._value);
-                (this._value as Vec2).y = parseFloat(input_y.value);
+                let indicator = slider_get_indicator(slider);
+                indicator.innerHTML = this.number_to_str(this._value.x);
 
-                if (this._change_event !== null) {
-                    this._change_event(this, old_value, this._value, false);
-                }
-            });
+                let input = slider_get_input(slider);
+                input.addEventListener("input", () => {
+                    if (!(this._value instanceof Vec2)) {
+                        throw new Error("value type has changed!");
+                    }
+
+                    const old_value = deep_clone(this._value);
+                    this._value.x = parseFloat(input.value);
+
+                    indicator.innerHTML = this.number_to_str(this._value.x);
+
+                    if (this._change_event !== null) {
+                        this._change_event(this, old_value, this._value, false);
+                    }
+                });
+            }
+
+            // y
+            {
+                let slider = elem.appendChild(slider_create(
+                    (this._config.min || 0.) as number,
+                    (this._config.max || 1.) as number,
+                    (this._config.step || .001) as number,
+                    this._value.y
+                ));
+
+                slider.style.marginInlineStart = "0.1rem";
+
+                let indicator = slider_get_indicator(slider);
+                indicator.innerHTML = this.number_to_str(this._value.y);
+
+                let input = slider_get_input(slider);
+                input.addEventListener("input", () => {
+                    if (!(this._value instanceof Vec2)) {
+                        throw new Error("value type has changed!");
+                    }
+
+                    const old_value = deep_clone(this._value);
+                    this._value.y = parseFloat(input.value);
+
+                    indicator.innerHTML = this.number_to_str(this._value.y);
+
+                    if (this._change_event !== null) {
+                        this._change_event(this, old_value, this._value, false);
+                    }
+                });
+            }
         }
         else {
             throw new Error("unsupported value type");
@@ -270,16 +292,27 @@ class Param {
                 "slider-wrapper"
             )[0]! as HTMLElement;
 
-            let input = slider_get_input(slider);
-            input.value = this._value.toString();
+            slider_get_input(slider).value = this._value.toString();
 
-            let indicator = slider_get_indicator(slider);
-            indicator.innerHTML = this.get_string();
+            slider_get_indicator(slider).innerHTML =
+                this.number_to_str(this._value);
         }
         else if (this._value instanceof Vec2) {
-            let inputs = this._element.getElementsByTagName("input");
-            inputs[0].value = this._value.x.toString();
-            inputs[1].value = this._value.y.toString();
+            let slider_x = this._element!.getElementsByClassName(
+                "slider-wrapper"
+            )[0]! as HTMLElement;
+
+            let slider_y = this._element!.getElementsByClassName(
+                "slider-wrapper"
+            )[1]! as HTMLElement;
+
+            slider_get_input(slider_x).value = this._value.x.toString();
+            slider_get_input(slider_y).value = this._value.y.toString();
+
+            slider_get_indicator(slider_x).innerHTML =
+                this.number_to_str(this._value.x);
+            slider_get_indicator(slider_y).innerHTML =
+                this.number_to_str(this._value.y);
         }
         else {
             throw new Error("unsupported value type");
@@ -479,7 +512,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: .1, max: 3., step: .001, decimal_digits: 2 }
+        { min: .1, max: 3., step: .001, decimal_digits: 3 }
     ));
     param_list.add(new Param(
         "transform_skew",
@@ -488,7 +521,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: -1., max: 1., step: .001, decimal_digits: 2 }
+        { min: -1., max: 1., step: .001, decimal_digits: 3 }
     ));
     param_list.add(new Param(
         "transform_rotation",
@@ -1380,15 +1413,4 @@ function slider_get_input(elem: HTMLElement): HTMLInputElement {
 
 function slider_get_indicator(elem: HTMLElement): HTMLDivElement {
     return elem.getElementsByTagName("div")[0] as HTMLDivElement;
-}
-
-function number_to_str(
-    v: number,
-    decimal_digits: any = undefined
-) {
-    if (typeof decimal_digits === "number") {
-        return v.toFixed(decimal_digits);
-    } else {
-        return v.toString();
-    }
 }
