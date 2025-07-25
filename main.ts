@@ -1008,8 +1008,8 @@ void main()
     for (int i = 0; i < N_SAMPLES; i++)
     {
         vec2 jitter_offs = vec2(
-            hashf(ivec2(i, 10)),
-            hashf(ivec2(i, 20))
+            hashf(ivec4(ivec2(floor(frag_coord)), i, 0)),
+            hashf(ivec4(ivec2(floor(frag_coord)), i, 1))
         ) - .5;
         
         col += render(frag_coord + jitter_offs);
