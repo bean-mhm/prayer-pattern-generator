@@ -1397,12 +1397,17 @@ function slider_create(
     );
     indicator.className = "slider-indicator";
 
-    input.addEventListener("mouseenter", () => {
-        indicator.classList.add("slider-indicator-show");
-    });
-    input.addEventListener("mouseleave", () => {
-        indicator.classList.remove("slider-indicator-show");
-    });
+    let show_indicator = () => indicator.classList.add("slider-indicator-show");
+    let hide_indicator = () => indicator.classList.remove("slider-indicator-show");
+
+    input.addEventListener("mouseenter", show_indicator);
+    input.addEventListener("pointerenter", show_indicator);
+    input.addEventListener("mousedown", show_indicator);
+    input.addEventListener("pointerdown", show_indicator);
+    input.addEventListener("mouseup", hide_indicator);
+    input.addEventListener("pointerup", hide_indicator);
+    input.addEventListener("mouseleave", hide_indicator);
+    input.addEventListener("pointerleave", hide_indicator);
 
     return slider_wrapper;
 }

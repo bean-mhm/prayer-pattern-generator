@@ -576,12 +576,16 @@ function slider_create(min, max, step, value) {
     input.value = value.toString();
     var indicator = slider_wrapper.appendChild(document.createElement("div"));
     indicator.className = "slider-indicator";
-    input.addEventListener("mouseenter", function () {
-        indicator.classList.add("slider-indicator-show");
-    });
-    input.addEventListener("mouseleave", function () {
-        indicator.classList.remove("slider-indicator-show");
-    });
+    var show_indicator = function () { return indicator.classList.add("slider-indicator-show"); };
+    var hide_indicator = function () { return indicator.classList.remove("slider-indicator-show"); };
+    input.addEventListener("mouseenter", show_indicator);
+    input.addEventListener("pointerenter", show_indicator);
+    input.addEventListener("mousedown", show_indicator);
+    input.addEventListener("pointerdown", show_indicator);
+    input.addEventListener("mouseup", hide_indicator);
+    input.addEventListener("pointerup", hide_indicator);
+    input.addEventListener("mouseleave", hide_indicator);
+    input.addEventListener("pointerleave", hide_indicator);
     return slider_wrapper;
 }
 function slider_get_input(elem) {

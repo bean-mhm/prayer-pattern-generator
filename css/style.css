@@ -467,6 +467,7 @@ input[type="range"]:hover {
 }
 
 input[type="range"]:active {
+  background: var(--gray-20);
   cursor: grabbing;
 }
 
