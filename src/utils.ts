@@ -184,6 +184,7 @@ function replace_substring(
     return str.slice(0, start) + replacement + str.slice(end);
 }
 
+const digit_chars = '0123456789';
 const valid_id_first_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_'
 const valid_id_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_';
 
@@ -224,4 +225,9 @@ class Identifier {
         this._id = value;
         ensure_valid_id(this._id);
     }
+}
+
+function insert_comment_before(text: string, elem: Element) {
+    const comment = document.createComment(text);
+    elem.parentNode!.insertBefore(comment, elem);
 }

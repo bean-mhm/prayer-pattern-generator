@@ -78,35 +78,124 @@ class TextBank {
         }
     }
 
-    get(text_id: string): string {
+    // if embed_info is false, the resolved text will be baked forever and
+    // language changes will have no effect.
+    get(text_id: string, embed_info: boolean = true): string {
+        let result: string = "";
+
         if (text_id === "-current-language") {
-            return this.current_language.name;
+            result = this.current_language.name;
         }
-        if (text_id === "-current-language-id") {
-            return this.current_language.id.id;
+        else if (text_id === "-current-language-id") {
+            result = this.current_language.id.id;
+        } else {
+            try {
+                if (!this.data[text_id]) {
+                    throw new Error(`non-existent text_id: "${text_id}"`);
+                }
+                if (!this.data[text_id][this.current_language.id.id]) {
+                    throw new Error(
+                        `no translation for "${text_id}" in the current language "${this.current_language.id.id}"`
+                    );
+                }
+                result = this.data[text_id][this.current_language.id.id] as string;
+            } catch (error) {
+                console.error(error);
+                if (this.current_language.id.id == "fa") {
+                    result = "(خطا در تحلیل متن)";
+                } else {
+                    result = "(text resolution error)";
+                }
+            }
         }
 
-        try {
-            if (!this.data[text_id]) {
-                throw new Error("non-existent text_id");
-            }
-            if (!this.data[text_id][this.current_language.id.id]) {
-                throw new Error("no translation for the current language");
-            }
-            return this.data[text_id][this.current_language.id.id] as string;
-        } catch (error) {
-            console.error(error);
-            if (this.current_language.id.id == "fa") {
-                return "(خطا در تحلیل متن)";
-            } else {
-                return "(text resolution error)";
-            }
+        if (embed_info) {
+            result =
+                "<!--resolved,len="
+                + result.length
+                + ",id="
+                + text_id
+                + "-->"
+                + result;
         }
+
+        return result;
     }
 
-    // replace every instance of @@text-id with the resolved value based on the
-    // current language.
+    // resolve all pieces of multilingual text inside a string
     resolve(text: string): string {
+        // find every instance of <!--resolved...--> and replace its following
+        // text with the resolved value based on the current language.
+        const prefix = "<!--";
+        const suffix = "-->"
+        for (let i = 0; i < text.length - prefix.length - suffix.length;) {
+            // find a '<!--'
+            if (!text.startsWith(prefix, i)) {
+                i++;
+                continue;
+            }
+
+            // skip the '<!--'
+            let start_idx: number = i;
+            i += prefix.length;
+
+            // read the comment
+            let comment: string = "";
+            while (i < text.length && !text.startsWith(suffix, i)) {
+                comment += text[i];
+                i++;
+            }
+
+            // skip the '-->'
+            i += suffix.length;
+
+            // skip if it's invalid
+            if (!comment.startsWith("resolved,len=")) {
+                continue;
+            }
+
+            // read length (skip if failed)
+            let s_len: string = "";
+            for (let j = "resolved,len=".length; j < comment.length; j++) {
+                if (!digit_chars.includes(comment[j])) {
+                    break;
+                }
+                s_len += comment[j];
+            }
+            if (s_len.length < 1) {
+                continue;
+            }
+            let len: number = parseInt(s_len);
+
+            // read text_id (skip if invalid)
+            let text_id: string = comment.slice(
+                comment.indexOf(",id=") + ",id=".length
+            );
+            if (!is_valid_id(text_id)) {
+                continue;
+            }
+
+            // skip reading the text following the comment (which was previously
+            // resolved)
+            i += len;
+            let end_idx: number = i;
+
+            // replace the whole thing (comment and the following text) with the
+            // resolved value.
+            let resolved: string = this.get(text_id);
+            text = replace_substring(
+                text,
+                start_idx,
+                end_idx,
+                resolved
+            );
+
+            // adjust the index because the resolved value might have a
+            // different length.
+            i += resolved.length - (end_idx - start_idx);
+        }
+
+        // replace every instance of @@text-id with the resolved value
         for (let i = 0; i < text.length - 3;) {
             // find a '@@'
             if (text[i] !== '@' || text[i + 1] !== '@') {
@@ -149,6 +238,7 @@ class TextBank {
             // different length.
             i += resolved.length - (end_idx - start_idx);
         }
+
         return text;
     }
 

@@ -152,7 +152,7 @@ class Param {
 
         let label = elem.appendChild(document.createElement("div"));
         label.className = "control-label";
-        label.textContent = text_bank.resolve(this._name);
+        label.innerHTML = text_bank.resolve(this._name);
 
         if (typeof this._value === "number") {
             let slider = elem.appendChild(slider_create(

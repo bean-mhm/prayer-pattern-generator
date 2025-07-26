@@ -160,6 +160,7 @@ function save_text_as_file(filename, content) {
 function replace_substring(str, start, end, replacement) {
     return str.slice(0, start) + replacement + str.slice(end);
 }
+const digit_chars = '0123456789';
 const valid_id_first_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_';
 const valid_id_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_';
 function is_valid_id(s) {
@@ -193,6 +194,10 @@ class Identifier {
         this._id = value;
         ensure_valid_id(this._id);
     }
+}
+function insert_comment_before(text, elem) {
+    const comment = document.createComment(text);
+    elem.parentNode.insertBefore(comment, elem);
 }
 /// <reference path="utils.ts" />
 function create_shader(gl, type, source) {
@@ -983,35 +988,104 @@ class TextBank {
             ensure_valid_id(key);
         }
     }
-    get(text_id) {
+    // if embed_info is false, the resolved text will be baked forever and
+    // language changes will have no effect.
+    get(text_id, embed_info = true) {
+        let result = "";
         if (text_id === "-current-language") {
-            return this.current_language.name;
+            result = this.current_language.name;
         }
-        if (text_id === "-current-language-id") {
-            return this.current_language.id.id;
+        else if (text_id === "-current-language-id") {
+            result = this.current_language.id.id;
         }
-        try {
-            if (!this.data[text_id]) {
-                throw new Error("non-existent text_id");
+        else {
+            try {
+                if (!this.data[text_id]) {
+                    throw new Error(`non-existent text_id: "${text_id}"`);
+                }
+                if (!this.data[text_id][this.current_language.id.id]) {
+                    throw new Error(`no translation for "${text_id}" in the current language "${this.current_language.id.id}"`);
+                }
+                result = this.data[text_id][this.current_language.id.id];
             }
-            if (!this.data[text_id][this.current_language.id.id]) {
-                throw new Error("no translation for the current language");
+            catch (error) {
+                console.error(error);
+                if (this.current_language.id.id == "fa") {
+                    result = "(خطا در تحلیل متن)";
+                }
+                else {
+                    result = "(text resolution error)";
+                }
             }
-            return this.data[text_id][this.current_language.id.id];
         }
-        catch (error) {
-            console.error(error);
-            if (this.current_language.id.id == "fa") {
-                return "(خطا در تحلیل متن)";
-            }
-            else {
-                return "(text resolution error)";
-            }
+        if (embed_info) {
+            result =
+                "<!--resolved,len="
+                    + result.length
+                    + ",id="
+                    + text_id
+                    + "-->"
+                    + result;
         }
+        return result;
     }
-    // replace every instance of @@text-id with the resolved value based on the
-    // current language.
+    // resolve all pieces of multilingual text inside a string
     resolve(text) {
+        // find every instance of <!--resolved...--> and replace its following
+        // text with the resolved value based on the current language.
+        const prefix = "<!--";
+        const suffix = "-->";
+        for (let i = 0; i < text.length - prefix.length - suffix.length;) {
+            // find a '<!--'
+            if (!text.startsWith(prefix, i)) {
+                i++;
+                continue;
+            }
+            // skip the '<!--'
+            let start_idx = i;
+            i += prefix.length;
+            // read the comment
+            let comment = "";
+            while (i < text.length && !text.startsWith(suffix, i)) {
+                comment += text[i];
+                i++;
+            }
+            // skip the '-->'
+            i += suffix.length;
+            // skip if it's invalid
+            if (!comment.startsWith("resolved,len=")) {
+                continue;
+            }
+            // read length (skip if failed)
+            let s_len = "";
+            for (let j = "resolved,len=".length; j < comment.length; j++) {
+                if (!digit_chars.includes(comment[j])) {
+                    break;
+                }
+                s_len += comment[j];
+            }
+            if (s_len.length < 1) {
+                continue;
+            }
+            let len = parseInt(s_len);
+            // read text_id (skip if invalid)
+            let text_id = comment.slice(comment.indexOf(",id=") + ",id=".length);
+            if (!is_valid_id(text_id)) {
+                continue;
+            }
+            // skip reading the text following the comment (which was previously
+            // resolved)
+            i += len;
+            let end_idx = i;
+            // replace the whole thing (comment and the following text) with the
+            // resolved value.
+            let resolved = this.get(text_id);
+            text = replace_substring(text, start_idx, end_idx, resolved);
+            // adjust the index because the resolved value might have a
+            // different length.
+            i += resolved.length - (end_idx - start_idx);
+        }
+        // replace every instance of @@text-id with the resolved value
         for (let i = 0; i < text.length - 3;) {
             // find a '@@'
             if (text[i] !== '@' || text[i + 1] !== '@') {
@@ -1303,7 +1377,7 @@ class Param {
         elem.className = "control-container";
         let label = elem.appendChild(document.createElement("div"));
         label.className = "control-label";
-        label.textContent = text_bank.resolve(this._name);
+        label.innerHTML = text_bank.resolve(this._name);
         if (typeof this._value === "number") {
             let slider = elem.appendChild(slider_create((this._config.min || 0.), (this._config.max || 1.), (this._config.step || .001), this._value));
             let indicator = slider_get_indicator(slider);
@@ -1531,7 +1605,7 @@ function init() {
         if (lang_bank.languages.length < 1) {
             throw new Error("there are no languages in the language bank!");
         }
-        let curr_lang_idx = 0;
+        let curr_lang_idx = -1;
         for (let i = 0; i < lang_bank.languages.length; i++) {
             if (lang_bank.languages[i].id.id === text_bank.current_language.id.id) {
                 curr_lang_idx = i;
