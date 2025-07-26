@@ -160,7 +160,7 @@ function save_text_as_file(filename, content) {
 function replace_substring(str, start, end, replacement) {
     return str.slice(0, start) + replacement + str.slice(end);
 }
-const valid_id_first_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const valid_id_first_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_';
 const valid_id_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_';
 function is_valid_id(s) {
     if (s.length < 1) {
@@ -984,6 +984,12 @@ class TextBank {
         }
     }
     get(text_id) {
+        if (text_id === "-current-language") {
+            return this.current_language.name;
+        }
+        if (text_id === "-current-language-id") {
+            return this.current_language.id.id;
+        }
         try {
             if (!this.data[text_id]) {
                 throw new Error("non-existent text_id");
@@ -1520,6 +1526,19 @@ function init() {
     });
     document.getElementById("btn-export").addEventListener("click", () => {
         export_params();
+    });
+    document.getElementById("btn-change-lang").addEventListener("click", () => {
+        if (lang_bank.languages.length < 1) {
+            throw new Error("there are no languages in the language bank!");
+        }
+        let curr_lang_idx = 0;
+        for (let i = 0; i < lang_bank.languages.length; i++) {
+            if (lang_bank.languages[i].id.id === text_bank.current_language.id.id) {
+                curr_lang_idx = i;
+            }
+        }
+        let new_lang_idx = (curr_lang_idx + 1) % lang_bank.languages.length;
+        set_lang(lang_bank.languages[new_lang_idx]);
     });
     // add parameters
     param_list.add(new Param("tile_size", "@@dimensions", new Vec2(200., 400.), "use-id", () => render_canvas(), null, { min: 10., max: 1000., step: 1., value_unit: "@@px", decimal_digits: 0 }));

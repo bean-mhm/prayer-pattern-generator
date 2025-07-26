@@ -79,6 +79,13 @@ class TextBank {
     }
 
     get(text_id: string): string {
+        if (text_id === "-current-language") {
+            return this.current_language.name;
+        }
+        if (text_id === "-current-language-id") {
+            return this.current_language.id.id;
+        }
+
         try {
             if (!this.data[text_id]) {
                 throw new Error("non-existent text_id");

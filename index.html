@@ -87,11 +87,32 @@
         <div class="vspace"></div>
         <div class="block-container">
           <div class="flexible-horiz-container">
-            <button id="btn-hide" class="transparent-button">@@hide</button>
-            <button id="btn-import" class="transparent-button">@@import</button>
-            <button id="btn-export" class="transparent-button">@@export</button>
+            <button id="btn-hide" class="transparent-button">
+              <span class="material-symbols-outlined">close</span>
+              @@hide
+            </button>
+            <button id="btn-import" class="transparent-button">
+              <span class="material-symbols-outlined">file_open</span>
+              @@import
+            </button>
+            <button id="btn-export" class="transparent-button">
+              <span class="material-symbols-outlined">file_save</span>
+              @@export
+            </button>
           </div>
-          <button id="btn-reset-all">@@reset-all</button>
+          <button id="btn-reset-all">
+            <span class="material-symbols-outlined">refresh</span>
+            @@reset-all
+          </button>
+        </div>
+
+        <div class="vspace"></div>
+        <div class="flexible-horiz-container" style="justify-content: left;">
+          <button id="btn-change-lang" class="transparent-button"
+            style="min-width: 8rem; flex-basis: content; flex-grow: 0;">
+            <span class="material-symbols-outlined">language</span>
+            @@-current-language
+          </button>
         </div>
       </div>
     </div>

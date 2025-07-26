@@ -184,7 +184,7 @@ function replace_substring(
     return str.slice(0, start) + replacement + str.slice(end);
 }
 
-const valid_id_first_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+const valid_id_first_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ-_'
 const valid_id_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_';
 
 function is_valid_id(s: string): boolean {

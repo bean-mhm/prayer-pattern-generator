@@ -72,6 +72,21 @@ function init() {
     document.getElementById("btn-export")!.addEventListener("click", () => {
         export_params();
     });
+    document.getElementById("btn-change-lang")!.addEventListener("click", () => {
+        if (lang_bank.languages.length < 1) {
+            throw new Error("there are no languages in the language bank!");
+        }
+
+        let curr_lang_idx = -1;
+        for (let i = 0; i < lang_bank.languages.length; i++) {
+            if (lang_bank.languages[i].id.id === text_bank.current_language.id.id) {
+                curr_lang_idx = i;
+            }
+        }
+
+        let new_lang_idx = (curr_lang_idx + 1) % lang_bank.languages.length;
+        set_lang(lang_bank.languages[new_lang_idx]);
+    });
 
     // add parameters
     param_list.add(new Param(
