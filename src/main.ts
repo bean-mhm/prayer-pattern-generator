@@ -1,6 +1,7 @@
 /// <reference path="utils.ts" />
 /// <reference path="params.ts" />
 /// <reference path="gl.ts" />
+/// <reference path="lang.ts" />
 
 interface State {
     canvas_ready: boolean,
@@ -28,7 +29,31 @@ function reset_params() {
     render_canvas();
 }
 
+function set_lang(language: Language) {
+    // update the lang attribute in the <html> tag
+    document.documentElement.lang = language.id.id;
+
+    // set the CSS property "direction"
+    if (language.rtl) {
+        document.body.classList.remove("ltr");
+        document.body.classList.add("rtl");
+    } else {
+        document.body.classList.remove("rtl");
+        document.body.classList.add("ltr");
+    }
+
+    // resolve all text in the entire DOM
+    text_bank.current_language = language;
+    text_bank.apply_to();
+
+    // re-render the parameter controls from scratch
+    param_list.render_all(true);
+}
+
 function init() {
+    // resolve multilingual texts
+    set_lang(lang_bank.get("fa")!);
+
     // events
     document.getElementById("btn-hide")!.addEventListener("click", () => {
         document.getElementById("controls")!.classList.add("hide");
@@ -51,25 +76,25 @@ function init() {
     // add parameters
     param_list.add(new Param(
         "tile_size",
-        "Tile Size",
+        "@@dimensions",
         new Vec2(200., 400.),
         "use-id",
         () => render_canvas(),
         null,
-        { min: 10., max: 1000., step: 1., value_unit: "px", decimal_digits: 0 }
+        { min: 10., max: 1000., step: 1., value_unit: "@@px", decimal_digits: 0 }
     ));
     param_list.add(new Param(
         "border_thickness",
-        "Border Thickness",
+        "@@thickness",
         3.,
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: 20., step: .25, value_unit: "px", decimal_digits: 2 }
+        { min: 0., max: 20., step: .25, value_unit: "@@px", decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "grid_lines_density",
-        "Density",
+        "@@density",
         400.,
         "use-id",
         () => render_canvas(),
@@ -78,16 +103,16 @@ function init() {
     ));
     param_list.add(new Param(
         "grid_lines_thickness",
-        "Thickness",
+        "@@thickness",
         1.,
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: 20., step: .25, value_unit: "px", decimal_digits: 2 }
+        { min: 0., max: 20., step: .25, value_unit: "@@px", decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "grid_lines_opacity_horizontal",
-        "Horizontal Lines",
+        "@@horizontal-lines",
         0.,
         "use-id",
         () => render_canvas(),
@@ -96,7 +121,7 @@ function init() {
     ));
     param_list.add(new Param(
         "grid_lines_opacity_vertical",
-        "Vertical Lines",
+        "@@vertical-lines",
         .05,
         "use-id",
         () => render_canvas(),
@@ -105,7 +130,7 @@ function init() {
     ));
     param_list.add(new Param(
         "masjad_position",
-        "Position",
+        "@@position",
         .125,
         "use-id",
         () => render_canvas(),
@@ -114,7 +139,7 @@ function init() {
     ));
     param_list.add(new Param(
         "masjad_radius",
-        "Radius",
+        "@@radius",
         .05,
         "use-id",
         () => render_canvas(),
@@ -123,7 +148,7 @@ function init() {
     ));
     param_list.add(new Param(
         "feet_vertical_position",
-        "Position",
+        "@@position",
         .2,
         "use-id",
         () => render_canvas(),
@@ -132,7 +157,7 @@ function init() {
     ));
     param_list.add(new Param(
         "feet_horizontal_distance",
-        "Distance",
+        "@@distance",
         .12,
         "use-id",
         () => render_canvas(),
@@ -141,16 +166,16 @@ function init() {
     ));
     param_list.add(new Param(
         "feet_thickness",
-        "Thickness",
+        "@@thickness",
         1.,
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: 20., step: .25, value_unit: "px", decimal_digits: 2 }
+        { min: 0., max: 20., step: .25, value_unit: "@@px", decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "feet_opacity",
-        "Opacity",
+        "@@opacity",
         1.,
         "use-id",
         () => render_canvas(),
@@ -159,7 +184,7 @@ function init() {
     ));
     param_list.add(new Param(
         "feet_size",
-        "Size",
+        "@@dimensions",
         new Vec2(.05, .13),
         "use-id",
         () => render_canvas(),
@@ -168,7 +193,7 @@ function init() {
     ));
     param_list.add(new Param(
         "transform_scale",
-        "Scale",
+        "@@scale",
         new Vec2(1., 1.),
         "use-id",
         () => render_canvas(),
@@ -177,7 +202,7 @@ function init() {
     ));
     param_list.add(new Param(
         "transform_skew",
-        "Skew",
+        "@@skew",
         new Vec2(0., 0.),
         "use-id",
         () => render_canvas(),
@@ -186,7 +211,7 @@ function init() {
     ));
     param_list.add(new Param(
         "transform_rotation",
-        "Rotation",
+        "@@rotation",
         0.,
         "use-id",
         () => render_canvas(),
@@ -195,16 +220,16 @@ function init() {
     ));
     param_list.add(new Param(
         "transform_offset",
-        "Offset",
+        "@@offset",
         new Vec2(0., 0.),
         "use-id",
         () => render_canvas(),
         null,
-        { min: -200., max: 200., step: .25, value_unit: "px", decimal_digits: 2 }
+        { min: -200., max: 200., step: .25, value_unit: "@@px", decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "background_color_h",
-        "Hue",
+        "@@hue",
         0.,
         "use-id",
         () => { update_color_blobs(); render_canvas(); },
@@ -213,7 +238,7 @@ function init() {
     ));
     param_list.add(new Param(
         "background_color_s",
-        "Saturation",
+        "@@saturation",
         0.,
         "use-id",
         () => { update_color_blobs(); render_canvas(); },
@@ -222,7 +247,7 @@ function init() {
     ));
     param_list.add(new Param(
         "background_color_v",
-        "Value",
+        "@@value",
         0.,
         "use-id",
         () => { update_color_blobs(); render_canvas(); },
@@ -231,7 +256,7 @@ function init() {
     ));
     param_list.add(new Param(
         "pattern_color_h",
-        "Hue",
+        "@@hue",
         0.,
         "use-id",
         () => { update_color_blobs(); render_canvas(); },
@@ -240,7 +265,7 @@ function init() {
     ));
     param_list.add(new Param(
         "pattern_color_s",
-        "Saturation",
+        "@@saturation",
         0.,
         "use-id",
         () => { update_color_blobs(); render_canvas(); },
@@ -249,7 +274,7 @@ function init() {
     ));
     param_list.add(new Param(
         "pattern_color_v",
-        "Value",
+        "@@value",
         1.,
         "use-id",
         () => { update_color_blobs(); render_canvas(); },

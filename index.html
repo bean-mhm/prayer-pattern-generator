@@ -5,23 +5,24 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="stylesheet" href="css/style.css" />
+  <script src="morphdom/morphdom-umd.js"></script>
   <script src="main.js"></script>
   <title>Prayer Pattern Generator</title>
 </head>
 
-<body onload="init()" onresize="viewport_resized()">
+<body class="ltr" onload="init()" onresize="viewport_resized()">
   <div class="wrapper">
     <div id="container" class="container">
       <canvas id="canvas" class="untouchable negative-z"></canvas>
-      <div id="error-message" class="vanish">WebGL2 is not supported.</div>
+      <div id="error-message" class="vanish">@@webgl2-not-supported</div>
 
       <div id="controls" class="article">
-        <h1 class="center">Prayer Pattern Generator</h1>
+        <h1 class="center">@@title</h1>
 
         <div class="vspace"></div>
         <h3 class="text-container">
           <span class="material-symbols-outlined">window</span>
-          Tile
+          @@tile
         </h3>
         <div id="tile_size"></div>
         <div id="border_thickness"></div>
@@ -29,7 +30,7 @@
         <div class="vspace"></div>
         <h3 class="text-container">
           <span class="material-symbols-outlined">grid_3x3</span>
-          Grid Lines
+          @@grid-lines
         </h3>
         <div id="grid_lines_density"></div>
         <div id="grid_lines_thickness"></div>
@@ -39,7 +40,7 @@
         <div class="vspace"></div>
         <h3 class="text-container">
           <span class="material-symbols-outlined">mode_standby</span>
-          Masjad
+          @@masjad
         </h3>
         <div id="masjad_position"></div>
         <div id="masjad_radius"></div>
@@ -47,7 +48,7 @@
         <div class="vspace"></div>
         <h3 class="text-container">
           <span class="material-symbols-outlined">footprint</span>
-          Feet
+          @@feet
         </h3>
         <div id="feet_vertical_position"></div>
         <div id="feet_horizontal_distance"></div>
@@ -58,7 +59,7 @@
         <div class="vspace"></div>
         <h3 class="text-container">
           <span class="material-symbols-outlined">transform</span>
-          Transform
+          @@transform
         </h3>
         <div id="transform_scale"></div>
         <div id="transform_skew"></div>
@@ -68,7 +69,7 @@
         <div class="vspace"></div>
         <h3 class="text-container">
           <span id="background_color_blob" class="color_blob"></span>
-          Background Color
+          @@bg-color
         </h3>
         <div id="background_color_h"></div>
         <div id="background_color_s"></div>
@@ -77,7 +78,7 @@
         <div class="vspace"></div>
         <h3 class="text-container">
           <span id="pattern_color_blob" class="color_blob"></span>
-          Pattern Color
+          @@pattern-color
         </h3>
         <div id="pattern_color_h"></div>
         <div id="pattern_color_s"></div>
@@ -86,11 +87,11 @@
         <div class="vspace"></div>
         <div class="block-container">
           <div class="flexible-horiz-container">
-            <button id="btn-hide" class="transparent-button">Hide</button>
-            <button id="btn-import" class="transparent-button">Import</button>
-            <button id="btn-export" class="transparent-button">Export</button>
+            <button id="btn-hide" class="transparent-button">@@hide</button>
+            <button id="btn-import" class="transparent-button">@@import</button>
+            <button id="btn-export" class="transparent-button">@@export</button>
           </div>
-          <button id="btn-reset-all">Reset All</button>
+          <button id="btn-reset-all">@@reset-all</button>
         </div>
       </div>
     </div>

@@ -134,8 +134,7 @@ body {
   overflow-x: hidden;
   overflow-y: hidden;
 
-  text-align: left;
-  direction: ltr;
+  text-align: start;
 
   font-family: var(--font-family);
   font-size: var(--font-size);
@@ -144,6 +143,14 @@ body {
 
   background-color: var(--bg-color);
   color: var(--text-color);
+}
+
+.ltr {
+  direction: ltr;
+}
+
+.rtl {
+  direction: rtl;
 }
 
 .wrapper {

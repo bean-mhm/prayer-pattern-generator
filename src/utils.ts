@@ -174,3 +174,54 @@ function save_text_as_file(filename: string, content: string) {
 
     URL.revokeObjectURL(url);
 }
+
+function replace_substring(
+    str: string,
+    start: number,
+    end: number,
+    replacement: string
+): string {
+    return str.slice(0, start) + replacement + str.slice(end);
+}
+
+const valid_id_first_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ'
+const valid_id_chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789-_';
+
+function is_valid_id(s: string): boolean {
+    if (s.length < 1) {
+        return false;
+    }
+    if (!valid_id_first_chars.includes(s[0])) {
+        return false;
+    }
+    for (const char of s) {
+        if (!valid_id_chars.includes(char)) {
+            return false;
+        }
+    }
+    return true;
+}
+
+function ensure_valid_id(s: string) {
+    if (!is_valid_id(s)) {
+        throw new Error(`"${s}" is not a valid ID`);
+    }
+}
+
+class Identifier {
+    private _id: string;
+
+    constructor(id: string) {
+        this._id = id;
+        ensure_valid_id(this._id);
+    }
+
+    get id(): string {
+        return this._id;
+    }
+
+    set id(value: string) {
+        this._id = value;
+        ensure_valid_id(this._id);
+    }
+}

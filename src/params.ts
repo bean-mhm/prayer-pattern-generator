@@ -134,7 +134,7 @@ class Param {
 
         let unit_str: string = "";
         if (typeof (this._config.value_unit) === "string") {
-            unit_str = " " + this._config.value_unit;
+            unit_str = " " + text_bank.resolve(this._config.value_unit);
         }
 
         return s_value + unit_str;
@@ -152,7 +152,7 @@ class Param {
 
         let label = elem.appendChild(document.createElement("div"));
         label.className = "control-label";
-        label.textContent = this._name;
+        label.textContent = text_bank.resolve(this._name);
 
         if (typeof this._value === "number") {
             let slider = elem.appendChild(slider_create(
@@ -328,9 +328,16 @@ class ParamList {
         return null;
     }
 
-    render_all() {
-        for (const param of this.params) {
-            param.render();
+    render_all(from_scratch: boolean = false) {
+        if (from_scratch) {
+            for (const param of this.params) {
+                param.render_from_scratch();
+            }
+        }
+        else {
+            for (const param of this.params) {
+                param.render();
+            }
         }
     }
 
