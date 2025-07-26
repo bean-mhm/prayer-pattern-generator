@@ -121,47 +121,6 @@ function deep_clone<T>(v: T): T {
     return clone;
 }
 
-function browse_file(): Promise<string> {
-    return new Promise((resolve, reject) => {
-        // create a hidden file input element
-        const input = document.body.appendChild(document.createElement('input'));
-        input.type = 'file';
-        input.style.display = 'none';
-
-        input.addEventListener('change', () => {
-            const file = input.files?.[0];
-            if (!file) {
-                cleanup();
-                return reject(new Error('no file selected'));
-            }
-
-            const reader = new FileReader();
-
-            reader.onload = () => {
-                cleanup();
-                if (typeof reader.result === 'string') {
-                    resolve(reader.result);
-                } else {
-                    reject(new Error('File could not be read as text.'));
-                }
-            };
-
-            reader.onerror = () => {
-                cleanup();
-                reject(new Error('Error reading file.'));
-            };
-
-            reader.readAsText(file);
-        });
-
-        input.click();
-
-        function cleanup() {
-            input.remove();
-        }
-    });
-}
-
 function load_text_from_file(): Promise<string> {
     return new Promise((resolve, reject) => {
         const input = document.body.appendChild(document.createElement("input"));
@@ -193,6 +152,7 @@ function load_text_from_file(): Promise<string> {
         input.click();
 
         function cleanup() {
+            document.body.removeChild(input);
             input.remove();
         }
     });
@@ -210,6 +170,7 @@ function save_text_as_file(filename: string, content: string) {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    a.remove();
 
     URL.revokeObjectURL(url);
 }

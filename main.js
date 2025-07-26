@@ -109,41 +109,6 @@ function deep_clone(v) {
     }
     return clone;
 }
-function browse_file() {
-    return new Promise((resolve, reject) => {
-        // create a hidden file input element
-        const input = document.body.appendChild(document.createElement('input'));
-        input.type = 'file';
-        input.style.display = 'none';
-        input.addEventListener('change', () => {
-            var _a;
-            const file = (_a = input.files) === null || _a === void 0 ? void 0 : _a[0];
-            if (!file) {
-                cleanup();
-                return reject(new Error('no file selected'));
-            }
-            const reader = new FileReader();
-            reader.onload = () => {
-                cleanup();
-                if (typeof reader.result === 'string') {
-                    resolve(reader.result);
-                }
-                else {
-                    reject(new Error('File could not be read as text.'));
-                }
-            };
-            reader.onerror = () => {
-                cleanup();
-                reject(new Error('Error reading file.'));
-            };
-            reader.readAsText(file);
-        });
-        input.click();
-        function cleanup() {
-            input.remove();
-        }
-    });
-}
 function load_text_from_file() {
     return new Promise((resolve, reject) => {
         const input = document.body.appendChild(document.createElement("input"));
@@ -174,6 +139,7 @@ function load_text_from_file() {
         });
         input.click();
         function cleanup() {
+            document.body.removeChild(input);
             input.remove();
         }
     });
@@ -188,6 +154,7 @@ function save_text_as_file(filename, content) {
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
+    a.remove();
     URL.revokeObjectURL(url);
 }
 /// <reference path="utils.ts" />
@@ -551,11 +518,11 @@ function init() {
     // events
     document.getElementById("btn-hide").addEventListener("click", () => {
         document.getElementById("controls").classList.add("hide");
-        document.getElementById("canvas").classList.remove("untouchable");
+        document.getElementById("canvas").classList.remove("untouchable", "negative-z");
     });
     document.getElementById("canvas").addEventListener("click", () => {
         document.getElementById("controls").classList.remove("hide");
-        document.getElementById("canvas").classList.add("untouchable");
+        document.getElementById("canvas").classList.add("untouchable", "negative-z");
     });
     document.getElementById("btn-reset-all").addEventListener("click", () => {
         reset_params();
@@ -623,18 +590,18 @@ function init_canvas() {
     state.canvas = document.getElementById("canvas");
     state.gl = state.canvas.getContext("webgl2");
     if (state.gl) {
-        document.getElementById("error-message").style.visibility = "collapse";
+        document.getElementById("error-message").classList.add("vanish");
     }
     else {
         console.error("failed to get WebGL2 rendering context");
-        document.getElementById("error-message").style.visibility = "visible";
-        document.getElementById("controls").style.visibility = "collapse";
+        document.getElementById("error-message").classList.remove("vanish");
+        document.getElementById("controls").classList.add("vanish");
         return;
     }
     // viewport resolution
     const dpr = window.devicePixelRatio || 1;
-    state.canvas.width = Math.floor(document.body.clientWidth * dpr);
-    state.canvas.height = Math.floor(document.body.clientHeight * dpr);
+    state.canvas.width = Math.floor(window.innerWidth * dpr);
+    state.canvas.height = Math.floor(window.innerHeight * dpr);
     state.gl.viewport(0, 0, state.canvas.width, state.canvas.height);
     // high DPI nonsense
     state.canvas.style.width = `${Math.floor(state.canvas.width / dpr)}px`;

@@ -11,9 +11,9 @@
 
 <body onload="init()" onresize="viewport_resized()">
   <div class="wrapper">
-    <div class="container">
-      <canvas id="canvas" class="untouchable"></canvas>
-      <div id="error-message">WebGL2 is not supported.</div>
+    <div id="container" class="container">
+      <canvas id="canvas" class="untouchable negative-z"></canvas>
+      <div id="error-message" class="vanish">WebGL2 is not supported.</div>
 
       <div id="controls" class="article">
         <h1 class="center">Prayer Pattern Generator</h1>

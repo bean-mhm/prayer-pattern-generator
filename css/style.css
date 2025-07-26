@@ -307,9 +307,14 @@ button {
   display: inline-block;
   width: 100%;
   padding: 1.2rem 1rem;
+  cursor: pointer;
+
   border: none;
   border-radius: 1000rem;
-  cursor: pointer;
+  outline: none;
+  outline-style: solid;
+  outline-color: transparent;
+  outline-width: 0;
 
   text-align: center;
   text-decoration: none;
@@ -331,11 +336,17 @@ button:active {
   transform: scale(0.98);
 }
 
+button:focus {
+  outline-color: var(--accent-color-l-10);
+  outline-width: 0.15rem;
+  outline-offset: 0.15rem;
+}
+
 button.transparent-button {
   background-color: transparent;
-  border-color: var(--translucent-light-dim);
-  border-width: 0.15rem;
-  border-style: solid;
+  outline-color: var(--translucent-light-dim);
+  outline-width: 0.15rem;
+  outline-offset: -0.15rem;
 }
 
 button.transparent-button:hover {
@@ -344,7 +355,13 @@ button.transparent-button:hover {
 
 button.transparent-button:active {
   background-color: var(--translucent-light);
-  border-color: transparent;
+  outline-color: transparent;
+}
+
+button.transparent-button:focus {
+  outline-color: var(--translucent-light);
+  outline-width: 0.15rem;
+  outline-offset: 0.15rem;
 }
 
 .dim {
@@ -420,8 +437,21 @@ button.transparent-button:active {
   transition: var(--transition-time);
 }
 
+.vanish {
+  display: none;
+  visibility: collapse;
+  width: 0;
+  height: 0;
+  margin: 0;
+  padding: 0;
+}
+
 .untouchable {
   pointer-events: none;
+}
+
+.negative-z {
+  z-index: -100 !important;
 }
 
 #controls {
@@ -495,9 +525,13 @@ button.transparent-button:active {
 input[type="range"] {
   height: 1.4rem;
   border-radius: 100rem;
-  outline: none;
   cursor: grab;
   appearance: none;
+
+  outline-style: solid;
+  outline-color: transparent;
+  outline-width: 0;
+  outline-offset: 0;
 
   background: var(--gray-15);
   transition: var(--transition-time);
@@ -512,14 +546,35 @@ input[type="range"]:active {
   cursor: grabbing;
 }
 
+input[type="range"]:focus {
+  outline-color: var(--translucent-light);
+  outline-width: 0.15rem;
+  outline-offset: 0.15rem;
+}
+
 input[type="range"]:disabled {
   /*filter: grayscale(1);*/
   opacity: 0.3;
   cursor: not-allowed;
 }
 
-input[type="range"]::-webkit-slider-thumb,
+/* gotta admire the sheer amount of consistency in web dev. it's 2025 and */
+/* different browsers still require different rules for certain things. */
+input[type="range"]::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+
+  width: 1.4rem;
+  height: 1.4rem;
+  border: none;
+  border-radius: 100rem;
+  background: var(--accent-color);
+  transition: var(--transition-time);
+}
+
 input[type="range"]::-moz-range-thumb {
+  appearance: none;
+
   width: 1.4rem;
   height: 1.4rem;
   border: none;
