@@ -363,7 +363,7 @@ function update_color_blobs() {
 function update_controls_transparency() {
     document.getElementById("controls")!.classList.toggle(
         "article-more-transparent-bg",
-        param_list.get("transparent_controls")!.get() as boolean
+        param_list.get("transparent_controls")?.get() as boolean
     );
 }
 

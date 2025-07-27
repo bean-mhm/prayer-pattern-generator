@@ -1776,7 +1776,8 @@ function update_color_blobs() {
         `rgb(${pattern_color.join(", ")})`;
 }
 function update_controls_transparency() {
-    document.getElementById("controls").classList.toggle("article-more-transparent-bg", param_list.get("transparent_controls").get());
+    var _a;
+    document.getElementById("controls").classList.toggle("article-more-transparent-bg", (_a = param_list.get("transparent_controls")) === null || _a === void 0 ? void 0 : _a.get());
 }
 function init_canvas() {
     state.canvas_ready = false;
