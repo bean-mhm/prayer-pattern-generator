@@ -199,6 +199,10 @@ function insert_comment_before(text, elem) {
     const comment = document.createComment(text);
     elem.parentNode.insertBefore(comment, elem);
 }
+function is_firefox_mobile() {
+    const ua = navigator.userAgent;
+    return /Firefox\/.*Mobile|Fennec|Gecko.*Mobile/.test(ua);
+}
 /// <reference path="utils.ts" />
 function create_shader(gl, type, source) {
     const shader = gl.createShader(type);
@@ -1682,6 +1686,10 @@ function set_lang(language) {
 }
 function init() {
     recalculate_sqrt_viewport_area();
+    // fixing a bug in Firefox on mobile (on Android at least)
+    if (is_firefox_mobile()) {
+        document.getElementById("controls").classList.add("firefox-mobile");
+    }
     // resolve multilingual texts
     let lang_id = localStorage.getItem("lang") || "en";
     set_lang(lang_bank.get(lang_id) || lang_bank.languages[0]);

@@ -231,3 +231,8 @@ function insert_comment_before(text: string, elem: Element) {
     const comment = document.createComment(text);
     elem.parentNode!.insertBefore(comment, elem);
 }
+
+function is_firefox_mobile() {
+    const ua = navigator.userAgent;
+    return /Firefox\/.*Mobile|Fennec|Gecko.*Mobile/.test(ua);
+}

@@ -56,6 +56,11 @@ function set_lang(language: Language) {
 function init() {
     recalculate_sqrt_viewport_area();
 
+    // fixing a bug in Firefox on mobile (on Android at least)
+    if (is_firefox_mobile()) {
+        document.getElementById("controls")!.classList.add("firefox-mobile");
+    }
+
     // resolve multilingual texts
     let lang_id: string = localStorage.getItem("lang") || "en";
     set_lang(lang_bank.get(lang_id) || lang_bank.languages[0]!);
