@@ -579,6 +579,8 @@ input[type="range"]::-webkit-slider-thumb {
   border-radius: 100rem;
   background: var(--accent-color);
   transition: var(--transition-time);
+
+  transform: scale(0.7);
 }
 
 input[type="range"]::-moz-range-thumb {
@@ -590,6 +592,8 @@ input[type="range"]::-moz-range-thumb {
   border-radius: 100rem;
   background: var(--accent-color);
   transition: var(--transition-time);
+
+  transform: scale(0.7);
 }
 
 input[type="range"]::-webkit-slider-thumb:hover {
@@ -601,11 +605,11 @@ input[type="range"]::-moz-range-thumb:hover {
 }
 
 input[type="range"]:active::-webkit-slider-thumb:active {
-  transform: scale(0.7);
+  transform: scale(1);
 }
 
 input[type="range"]:active::-moz-range-thumb {
-  transform: scale(0.7);
+  transform: scale(1);
 }
 
 .checkbox-wrapper {
