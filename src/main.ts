@@ -307,12 +307,8 @@ function init() {
         "@@transparent-controls",
         false,
         "use-id",
-        (param: Param, old_value: Value, new_value: Value, own_change: boolean) => {
-            document.getElementById("controls")!.classList.toggle(
-                "article-more-transparent-bg",
-                new_value as boolean
-            );
-        }
+        () => update_controls_transparency(),
+        () => update_controls_transparency()
     ));
     param_list.add(new Param(
         "high_quality_rendering",
@@ -362,6 +358,13 @@ function update_color_blobs() {
         `rgb(${background_color.join(", ")})`;
     document.getElementById("pattern_color_blob")!.style.backgroundColor =
         `rgb(${pattern_color.join(", ")})`;
+}
+
+function update_controls_transparency() {
+    document.getElementById("controls")!.classList.toggle(
+        "article-more-transparent-bg",
+        param_list.get("transparent_controls")!.get() as boolean
+    );
 }
 
 function init_canvas() {

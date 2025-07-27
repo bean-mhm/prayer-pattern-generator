@@ -1740,9 +1740,7 @@ function init() {
     param_list.add(new Param("pattern_color_h", "@@hue", 0., "use-id", () => { update_color_blobs(); render_canvas(); }, () => update_color_blobs(), { min: 0., max: 1., step: .001, decimal_digits: 2 }));
     param_list.add(new Param("pattern_color_s", "@@saturation", 0., "use-id", () => { update_color_blobs(); render_canvas(); }, () => update_color_blobs(), { min: 0., max: 1., step: .001, decimal_digits: 2 }));
     param_list.add(new Param("pattern_color_v", "@@value", 1., "use-id", () => { update_color_blobs(); render_canvas(); }, () => update_color_blobs(), { min: 0., max: 1., step: .001, decimal_digits: 2 }));
-    param_list.add(new Param("transparent_controls", "@@transparent-controls", false, "use-id", (param, old_value, new_value, own_change) => {
-        document.getElementById("controls").classList.toggle("article-more-transparent-bg", new_value);
-    }));
+    param_list.add(new Param("transparent_controls", "@@transparent-controls", false, "use-id", () => update_controls_transparency(), () => update_controls_transparency()));
     param_list.add(new Param("high_quality_rendering", "@@high-quality-rendering", false, "use-id", () => render_canvas()));
     // make a copy of the initial values to use in reset_params()
     default_params = deep_clone(param_list.params);
@@ -1776,6 +1774,9 @@ function update_color_blobs() {
         `rgb(${background_color.join(", ")})`;
     document.getElementById("pattern_color_blob").style.backgroundColor =
         `rgb(${pattern_color.join(", ")})`;
+}
+function update_controls_transparency() {
+    document.getElementById("controls").classList.toggle("article-more-transparent-bg", param_list.get("transparent_controls").get());
 }
 function init_canvas() {
     state.canvas_ready = false;
