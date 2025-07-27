@@ -420,6 +420,9 @@ uniform vec2 transform_offset; // px
 uniform vec3 background_color;
 uniform vec3 pattern_color;
 
+// misc
+uniform int n_samples;
+
 /*__________ hash function collection _________*/
 // sources: https://nullprogram.com/blog/2018/07/31/
 //          https://www.shadertoy.com/view/WttXWX
@@ -717,8 +720,7 @@ void main()
 
     // render (average multiple samples)
     vec3 col = vec3(0);
-    const int N_SAMPLES = 32;
-    for (int i = 0; i < N_SAMPLES; i++)
+    for (int i = 0; i < n_samples; i++)
     {
         vec2 jitter_offs = vec2(
             hashf(ivec4(ivec2(floor(frag_coord)), i, 0)),
@@ -727,7 +729,7 @@ void main()
         
         col += render(frag_coord + jitter_offs);
     }
-    col /= float(N_SAMPLES);
+    col /= float(n_samples);
     
     // output
     col = view_transform(col);
@@ -842,6 +844,9 @@ function render_canvas() {
             "pattern_color",
             arr_to_vec3(pattern_color)
         );
+
+        // number of samples (for pixels jittering in anti-aliasing)
+        set_uniform(state.gl!, state.program!, "n_samples", 32, true);
     }
 
     // bind VBO

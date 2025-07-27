@@ -228,24 +228,40 @@ function create_program(gl, vertex_source, fragment_source) {
 }
 // example dimensions: 1f (float), 3i (ivec3), basically the suffix after
 // "gl.uniform".
-function set_uniform(gl, program, name, value) {
+function set_uniform(gl, program, name, value, is_int = false) {
     const location = gl.getUniformLocation(program, name);
     if (!location) {
         return false;
     }
-    if (typeof value === "number") {
-        gl.uniform1f(location, value);
-    }
-    else if (value instanceof Vec2) {
-        gl.uniform2f(location, value.x, value.y);
-    }
-    else if (value instanceof Vec3) {
-        gl.uniform3f(location, value.x, value.y, value.z);
+    if (is_int) {
+        if (typeof value === "number") {
+            gl.uniform1i(location, value);
+            return true;
+        }
+        if (value instanceof Vec2) {
+            gl.uniform2i(location, value.x, value.y);
+            return true;
+        }
+        if (value instanceof Vec3) {
+            gl.uniform3i(location, value.x, value.y, value.z);
+            return true;
+        }
     }
     else {
-        throw new Error("unsupported uniform type");
+        if (typeof value === "number") {
+            gl.uniform1f(location, value);
+            return true;
+        }
+        if (value instanceof Vec2) {
+            gl.uniform2f(location, value.x, value.y);
+            return true;
+        }
+        if (value instanceof Vec3) {
+            gl.uniform3f(location, value.x, value.y, value.z);
+            return true;
+        }
     }
-    return true;
+    throw new Error("unsupported uniform type");
 }
 (function (global, factory) {
     typeof exports === 'object' && typeof module !== 'undefined' ? module.exports = factory() :
@@ -1747,6 +1763,9 @@ uniform vec2 transform_offset; // px
 uniform vec3 background_color;
 uniform vec3 pattern_color;
 
+// misc
+uniform int n_samples;
+
 /*__________ hash function collection _________*/
 // sources: https://nullprogram.com/blog/2018/07/31/
 //          https://www.shadertoy.com/view/WttXWX
@@ -2044,8 +2063,7 @@ void main()
 
     // render (average multiple samples)
     vec3 col = vec3(0);
-    const int N_SAMPLES = 32;
-    for (int i = 0; i < N_SAMPLES; i++)
+    for (int i = 0; i < n_samples; i++)
     {
         vec2 jitter_offs = vec2(
             hashf(ivec4(ivec2(floor(frag_coord)), i, 0)),
@@ -2054,7 +2072,7 @@ void main()
         
         col += render(frag_coord + jitter_offs);
     }
-    col /= float(N_SAMPLES);
+    col /= float(n_samples);
     
     // output
     col = view_transform(col);
@@ -2128,6 +2146,8 @@ function render_canvas() {
         ]);
         set_uniform(state.gl, state.program, "background_color", arr_to_vec3(background_color));
         set_uniform(state.gl, state.program, "pattern_color", arr_to_vec3(pattern_color));
+        // number of samples (for pixels jittering in anti-aliasing)
+        set_uniform(state.gl, state.program, "n_samples", 32, true);
     }
     // bind VBO
     state.gl.bindBuffer(WebGL2RenderingContext.ARRAY_BUFFER, state.vbo);

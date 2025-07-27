@@ -60,22 +60,42 @@ function set_uniform(
     gl: WebGL2RenderingContext,
     program: WebGLProgram,
     name: string,
-    value: number | Vec2 | Vec3
+    value: number | Vec2 | Vec3,
+    is_int: boolean = false
 ): boolean {
     const location = gl.getUniformLocation(program, name);
     if (!location) {
         return false;
     }
 
-    if (typeof value === "number") {
-        gl.uniform1f(location, value);
-    } else if (value instanceof Vec2) {
-        gl.uniform2f(location, value.x, value.y);
-    } else if (value instanceof Vec3) {
-        gl.uniform3f(location, value.x, value.y, value.z);
-    } else {
-        throw new Error("unsupported uniform type");
+    if (is_int) {
+        if (typeof value === "number") {
+            gl.uniform1i(location, value);
+            return true;
+        }
+        if (value instanceof Vec2) {
+            gl.uniform2i(location, value.x, value.y);
+            return true;
+        }
+        if (value instanceof Vec3) {
+            gl.uniform3i(location, value.x, value.y, value.z);
+            return true;
+        }
+    }
+    else {
+        if (typeof value === "number") {
+            gl.uniform1f(location, value);
+            return true;
+        }
+        if (value instanceof Vec2) {
+            gl.uniform2f(location, value.x, value.y);
+            return true;
+        }
+        if (value instanceof Vec3) {
+            gl.uniform3f(location, value.x, value.y, value.z);
+            return true;
+        }
     }
 
-    return true;
+    throw new Error("unsupported uniform type");
 }
