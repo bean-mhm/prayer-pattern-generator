@@ -369,6 +369,18 @@ const text_bank = new TextBank(
         "px": {
             "en": "px",
             "fa": "پیکسل"
+        },
+        "misc": {
+            "en": "Misc",
+            "fa": "دیگر"
+        },
+        "high-quality-rendering": {
+            "en": "High Quality Rendering",
+            "fa": "رندرینگ با کیفیت بالا"
+        },
+        "transparent-controls": {
+            "en": "Transparent Controls",
+            "fa": "کنترل‌های شفاف"
         }
     }
 );

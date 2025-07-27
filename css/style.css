@@ -236,7 +236,7 @@ p {
 
 h1 {
   font-weight: 900;
-  font-size: 1.75rem;
+  font-size: 1.7rem;
 }
 
 h2 {
@@ -246,22 +246,22 @@ h2 {
 
 h3 {
   font-weight: bold;
-  font-size: 1.4rem;
+  font-size: 1.3rem;
 }
 
 h4 {
   font-weight: bold;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
 }
 
 h5 {
   font-weight: bold;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
 }
 
 h6 {
   font-weight: bold;
-  font-size: 1.1rem;
+  font-size: 1.05rem;
 }
 
 p {
@@ -308,7 +308,7 @@ button {
 
   text-align: center;
   text-decoration: none;
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   font-family: var(--font-family);
 
   background-color: var(--accent-color);
@@ -408,6 +408,11 @@ button.transparent-button:focus {
   transition: var(--transition-time);
 }
 
+.article-more-transparent-bg {
+  background-color: rgb(from var(--gray-10) r g b / 85%);
+  opacity: 0.9;
+}
+
 .article>* {
   margin-top: 1em;
   margin-bottom: 1em;
@@ -449,6 +454,19 @@ button.transparent-button:focus {
   margin-bottom: 2rem;
 }
 
+.width-fit {
+  width: fit-content;
+}
+
+.height-fit {
+  height: fit-content;
+}
+
+.wh-fit {
+  width: fit-content;
+  height: fit-content;
+}
+
 .control-container {
   display: flex;
   flex-flow: row nowrap;
@@ -458,7 +476,7 @@ button.transparent-button:focus {
 
 .control-label {
   display: inline-block;
-  min-width: 25%;
+  min-width: 22%;
   max-width: 50%;
   margin-inline-end: 1rem;
 }
@@ -581,12 +599,111 @@ input[type="range"]::-moz-range-thumb:hover {
   background: var(--accent-color-l-10);
 }
 
-input[type="range"]::-webkit-slider-thumb:active {
-  transform: scale(0.75);
+input[type="range"]:active::-webkit-slider-thumb:active {
+  transform: scale(0.7);
 }
 
-input[type="range"]::-moz-range-thumb:active {
-  transform: scale(0.75);
+input[type="range"]:active::-moz-range-thumb {
+  transform: scale(0.7);
+}
+
+.checkbox-wrapper {
+  display: flex;
+  width: fit-content;
+  position: relative;
+  padding: 0;
+
+  flex-flow: row wrap;
+  justify-content: flex-start;
+  align-items: center;
+  align-content: center;
+  gap: 0.2rem 0.4rem;
+
+  cursor: pointer;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+
+/* hide the browser's default checkbox */
+.checkbox-wrapper input {
+  position: absolute;
+  opacity: 0;
+  cursor: pointer;
+  height: 0;
+  width: 0;
+}
+
+/* custom checkbox */
+.checkmark {
+  display: flex;
+  flex-flow: row nowrap;
+  justify-content: center;
+  align-items: center;
+  align-content: center;
+
+  height: 1.5rem;
+  width: 1.5rem;
+  background-color: transparent;
+  border-radius: 1000rem;
+  border: none;
+
+  outline-style: solid;
+  outline-color: var(--translucent-light-dim);
+  outline-width: 0.15rem;
+  outline-offset: -0.15rem;
+
+  transition: var(--transition-time);
+}
+
+.checkbox-wrapper:hover input~.checkmark {
+  background-color: var(--translucent-light-dim);
+  outline-color: transparent;
+}
+
+.checkbox-wrapper input:checked~.checkmark {
+  background-color: var(--accent-color);
+  outline-color: transparent;
+}
+
+.checkbox-wrapper input:checked:hover~.checkmark {
+  background-color: var(--accent-color-l-10);
+  outline-color: transparent;
+}
+
+.checkbox-wrapper input:focus~.checkmark {
+  outline-color: var(--translucent-light) !important;
+  outline-width: 0.15rem !important;
+  outline-offset: 0.15rem !important;
+}
+
+.checkbox-wrapper input:checked:focus~.checkmark {
+  outline-color: var(--accent-color) !important;
+  outline-width: 0.15rem !important;
+  outline-offset: 0.15rem !important;
+}
+
+/* hide checkmark when unchecked */
+.checkmark:after {
+  content: "";
+  display: none;
+}
+
+/* show checkmark when checked */
+.checkbox-wrapper input:checked~.checkmark:after {
+  display: inline-block;
+}
+
+/* checkmark */
+.checkbox-wrapper .checkmark:after {
+  width: 0.25rem;
+  height: 0.5rem;
+  border: solid white;
+  border-width: 0 0.25rem 0.25rem 0;
+  -webkit-transform: rotate(45deg);
+  -ms-transform: rotate(45deg);
+  transform: rotate(45deg);
 }
 
 .block-container {
@@ -604,6 +721,7 @@ input[type="range"]::-moz-range-thumb:active {
   justify-content: flex-start;
   align-items: center;
   align-content: flex-start;
+  row-gap: 0.2em;
   column-gap: 0.45em;
 }
 
@@ -618,7 +736,7 @@ input[type="range"]::-moz-range-thumb:active {
   justify-content: space-between;
   align-items: center;
   align-content: center;
-  gap: 0.2rem 0.2rem;
+  gap: 0.2rem;
 }
 
 .flexible-horiz-container>* {
@@ -626,10 +744,10 @@ input[type="range"]::-moz-range-thumb:active {
   flex-grow: 1;
 }
 
-.color_blob {
+.color-blob {
   display: inline-block;
-  width: 1.25em;
-  height: 1.25em;
+  width: 1.15em;
+  height: 1.15em;
   vertical-align: middle;
   border-radius: 1000rem;
 

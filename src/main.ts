@@ -98,7 +98,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 10., max: 1000., step: 1., value_unit: "@@px", decimal_digits: 0 }
+        { is_gl_uniform: true, min: 10., max: 1000., step: 1., value_unit: "@@px", decimal_digits: 0 }
     ));
     param_list.add(new Param(
         "border_thickness",
@@ -107,7 +107,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: 20., step: .25, value_unit: "@@px", decimal_digits: 2 }
+        { is_gl_uniform: true, min: 0., max: 20., step: .25, value_unit: "@@px", decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "grid_lines_density",
@@ -116,7 +116,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 1., max: 2000., step: 1., decimal_digits: 0 }
+        { is_gl_uniform: true, min: 1., max: 2000., step: 1., decimal_digits: 0 }
     ));
     param_list.add(new Param(
         "grid_lines_thickness",
@@ -125,7 +125,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: 20., step: .25, value_unit: "@@px", decimal_digits: 2 }
+        { is_gl_uniform: true, min: 0., max: 20., step: .25, value_unit: "@@px", decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "grid_lines_opacity_horizontal",
@@ -134,7 +134,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: 1., step: .001, decimal_digits: 2 }
+        { is_gl_uniform: true, min: 0., max: 1., step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "grid_lines_opacity_vertical",
@@ -143,7 +143,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: 1., step: .001, decimal_digits: 2 }
+        { is_gl_uniform: true, min: 0., max: 1., step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "masjad_position",
@@ -152,7 +152,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: .5, step: .001, decimal_digits: 2 }
+        { is_gl_uniform: true, min: 0., max: .5, step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "masjad_radius",
@@ -161,7 +161,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: .5, step: .001, decimal_digits: 2 }
+        { is_gl_uniform: true, min: 0., max: .5, step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "feet_vertical_position",
@@ -170,7 +170,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: .5, step: .001, decimal_digits: 2 }
+        { is_gl_uniform: true, min: 0., max: .5, step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "feet_horizontal_distance",
@@ -179,7 +179,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: .3, step: .001, decimal_digits: 2 }
+        { is_gl_uniform: true, min: 0., max: .3, step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "feet_thickness",
@@ -188,7 +188,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: 20., step: .25, value_unit: "@@px", decimal_digits: 2 }
+        { is_gl_uniform: true, min: 0., max: 20., step: .25, value_unit: "@@px", decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "feet_opacity",
@@ -197,7 +197,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: 1., step: .001, decimal_digits: 2 }
+        { is_gl_uniform: true, min: 0., max: 1., step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "feet_size",
@@ -206,7 +206,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: 0., max: .3, step: .001, decimal_digits: 2 }
+        { is_gl_uniform: true, min: 0., max: .3, step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "transform_scale",
@@ -215,7 +215,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: .1, max: 3., step: .001, decimal_digits: 3 }
+        { is_gl_uniform: true, min: .1, max: 3., step: .001, decimal_digits: 3 }
     ));
     param_list.add(new Param(
         "transform_skew",
@@ -224,7 +224,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: -1., max: 1., step: .001, decimal_digits: 3 }
+        { is_gl_uniform: true, min: -1., max: 1., step: .001, decimal_digits: 3 }
     ));
     param_list.add(new Param(
         "transform_rotation",
@@ -233,7 +233,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: -180., max: 180., step: .001, decimal_digits: 2 }
+        { is_gl_uniform: true, min: -180., max: 180., step: .001, decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "transform_offset",
@@ -242,7 +242,7 @@ function init() {
         "use-id",
         () => render_canvas(),
         null,
-        { min: -200., max: 200., step: .25, value_unit: "@@px", decimal_digits: 2 }
+        { is_gl_uniform: true, min: -200., max: 200., step: .25, value_unit: "@@px", decimal_digits: 2 }
     ));
     param_list.add(new Param(
         "background_color_h",
@@ -297,6 +297,25 @@ function init() {
         () => { update_color_blobs(); render_canvas(); },
         () => update_color_blobs(),
         { min: 0., max: 1., step: .001, decimal_digits: 2 }
+    ));
+    param_list.add(new Param(
+        "transparent_controls",
+        "@@transparent-controls",
+        false,
+        "use-id",
+        (param: Param, old_value: Value, new_value: Value, own_change: boolean) => {
+            document.getElementById("controls")!.classList.toggle(
+                "article-more-transparent-bg",
+                new_value as boolean
+            );
+        }
+    ));
+    param_list.add(new Param(
+        "high_quality_rendering",
+        "@@high-quality-rendering",
+        false,
+        "use-id",
+        () => render_canvas()
     ));
 
     // make a copy of the initial values to use in reset_params()
@@ -811,6 +830,10 @@ function render_canvas() {
 
         // ordinary parameters
         for (const param of param_list.params) {
+            if (param.config().is_gl_uniform !== true) {
+                continue;
+            }
+
             if (typeof param.get() === "number"
                 || param.get() instanceof Vec2
                 || param.get() instanceof Vec3) {
@@ -846,7 +869,13 @@ function render_canvas() {
         );
 
         // number of samples (for pixels jittering in anti-aliasing)
-        set_uniform(state.gl!, state.program!, "n_samples", 32, true);
+        set_uniform(
+            state.gl!,
+            state.program!,
+            "n_samples",
+            param_list.get("high_quality_rendering")?.get() === true ? 32 : 8,
+            true
+        );
     }
 
     // bind VBO

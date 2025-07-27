@@ -60,12 +60,17 @@ function set_uniform(
     gl: WebGL2RenderingContext,
     program: WebGLProgram,
     name: string,
-    value: number | Vec2 | Vec3,
+    value: boolean | number | Vec2 | Vec3,
     is_int: boolean = false
 ): boolean {
     const location = gl.getUniformLocation(program, name);
     if (!location) {
         return false;
+    }
+
+    if (typeof value === "boolean") {
+        gl.uniform1i(location, value ? 1 : 0);
+        return true;
     }
 
     if (is_int) {

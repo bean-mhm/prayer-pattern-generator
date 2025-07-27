@@ -233,6 +233,10 @@ function set_uniform(gl, program, name, value, is_int = false) {
     if (!location) {
         return false;
     }
+    if (typeof value === "boolean") {
+        gl.uniform1i(location, value ? 1 : 0);
+        return true;
+    }
     if (is_int) {
         if (typeof value === "number") {
             gl.uniform1i(location, value);
@@ -1259,19 +1263,37 @@ const text_bank = new TextBank(lang_bank.get("fa"), {
     "px": {
         "en": "px",
         "fa": "پیکسل"
+    },
+    "misc": {
+        "en": "Misc",
+        "fa": "دیگر"
+    },
+    "high-quality-rendering": {
+        "en": "High Quality Rendering",
+        "fa": "رندرینگ با کیفیت بالا"
+    },
+    "transparent-controls": {
+        "en": "Transparent Controls",
+        "fa": "کنترل‌های شفاف"
     }
 });
+/*
+<div class="control slider-wrapper">
+  <input class="slider-input" type="range">
+  <div class="slider-indicator">100 cm</div>
+</div>
+*/
 function slider_create(min, max, step, value) {
-    let slider_wrapper = document.createElement("div");
-    slider_wrapper.className = "control slider-wrapper";
-    let input = slider_wrapper.appendChild(document.createElement("input"));
+    let wrapper = document.createElement("div");
+    wrapper.className = "control slider-wrapper";
+    let input = wrapper.appendChild(document.createElement("input"));
     input.className = "slider-input";
     input.type = "range";
     input.min = min.toString();
     input.max = max.toString();
     input.step = step.toString();
     input.value = value.toString();
-    let indicator = slider_wrapper.appendChild(document.createElement("div"));
+    let indicator = wrapper.appendChild(document.createElement("div"));
     indicator.className = "slider-indicator";
     let show_indicator = () => indicator.classList.add("slider-indicator-show");
     let hide_indicator = () => indicator.classList.remove("slider-indicator-show");
@@ -1283,7 +1305,7 @@ function slider_create(min, max, step, value) {
     input.addEventListener("pointerup", hide_indicator);
     input.addEventListener("mouseleave", hide_indicator);
     input.addEventListener("pointerleave", hide_indicator);
-    return slider_wrapper;
+    return wrapper;
 }
 function slider_get_input(elem) {
     return elem.getElementsByTagName("input")[0];
@@ -1291,11 +1313,47 @@ function slider_get_input(elem) {
 function slider_get_indicator(elem) {
     return elem.getElementsByTagName("div")[0];
 }
+/*
+<label class="checkbox-wrapper">
+  <input type="checkbox" checked="checked">
+  <span class="checkmark"></span>
+  check me out
+</label>
+*/
+function checkbox_create(label, checked) {
+    let wrapper = document.createElement("label");
+    wrapper.className = "control checkbox-wrapper";
+    let input = wrapper.appendChild(document.createElement("input"));
+    input.type = "checkbox";
+    input.checked = checked;
+    let checkmark = wrapper.appendChild(document.createElement("span"));
+    checkmark.className = "checkmark";
+    wrapper.innerHTML += label;
+    return wrapper;
+}
+function checkbox_get_input(elem) {
+    return elem.getElementsByTagName("input")[0];
+}
+function checkbox_get_checked(elem) {
+    return elem.getElementsByTagName("input")[0].checked;
+}
+function checkbox_set_checked(elem, checked) {
+    elem.getElementsByTagName("input")[0].checked = checked;
+}
+function control_container_create(id, label) {
+    let elem = document.createElement("div");
+    elem.id = id;
+    elem.className = "control-container";
+    let lbl = elem.appendChild(document.createElement("div"));
+    lbl.className = "control-label";
+    lbl.innerHTML = label;
+    return elem;
+}
 /// <reference path="utils.ts" />
 /// <reference path="ui.ts" />
 function get_value_type(v) {
-    if (typeof v === "number") {
-        return "number";
+    if (["number", "boolean"].includes(typeof v)) {
+        return typeof v;
     }
     else if (v instanceof Vec2) {
         return "Vec2";
@@ -1391,16 +1449,30 @@ class Param {
         elem.id = this._element.id;
         elem.toggleAttribute("has-ever-rendered", true);
         elem.className = "control-container";
-        let label = elem.appendChild(document.createElement("div"));
-        label.className = "control-label";
-        label.innerHTML = text_bank.resolve(this._name);
-        if (typeof this._value === "number") {
+        if (typeof this._value !== "boolean") {
+            let label = elem.appendChild(document.createElement("div"));
+            label.className = "control-label";
+            label.innerHTML = text_bank.resolve(this._name);
+        }
+        if (typeof this._value === "boolean") {
+            elem.classList.add("width-fit");
+            let checkbox = elem.appendChild(checkbox_create(text_bank.resolve(this._name), this._value));
+            let input = checkbox_get_input(checkbox);
+            input.addEventListener("change", () => {
+                const old_value = this._value;
+                this._value = input.checked;
+                if (this._change_event !== null) {
+                    this._change_event(this, old_value, this._value, false);
+                }
+            });
+        }
+        else if (typeof this._value === "number") {
             let slider = elem.appendChild(slider_create((this._config.min || 0.), (this._config.max || 1.), (this._config.step || .001), this._value));
             let indicator = slider_get_indicator(slider);
             indicator.innerHTML = this.number_to_str(this._value);
             let input = slider_get_input(slider);
             input.addEventListener("input", () => {
-                const old_value = deep_clone(this._value);
+                const old_value = this._value;
                 this._value = parseFloat(input.value);
                 indicator.innerHTML = this.number_to_str(this._value);
                 if (this._change_event !== null) {
@@ -1412,7 +1484,7 @@ class Param {
             // x
             {
                 let slider = elem.appendChild(slider_create((this._config.min || 0.), (this._config.max || 1.), (this._config.step || .001), this._value.x));
-                slider.style.marginInlineEnd = "0.1rem";
+                slider.style.marginInlineEnd = "0.15rem";
                 let indicator = slider_get_indicator(slider);
                 indicator.innerHTML = this.number_to_str(this._value.x);
                 let input = slider_get_input(slider);
@@ -1431,7 +1503,7 @@ class Param {
             // y
             {
                 let slider = elem.appendChild(slider_create((this._config.min || 0.), (this._config.max || 1.), (this._config.step || .001), this._value.y));
-                slider.style.marginInlineStart = "0.1rem";
+                slider.style.marginInlineStart = "0.15rem";
                 let indicator = slider_get_indicator(slider);
                 indicator.innerHTML = this.number_to_str(this._value.y);
                 let input = slider_get_input(slider);
@@ -1465,7 +1537,11 @@ class Param {
             this.render_from_scratch();
             return;
         }
-        if (typeof this._value === "number") {
+        if (typeof this._value === "boolean") {
+            let checkbox = this._element.getElementsByClassName("checkbox-wrapper")[0];
+            checkbox_set_checked(checkbox, this._value);
+        }
+        else if (typeof this._value === "number") {
             let slider = this._element.getElementsByClassName("slider-wrapper")[0];
             slider_get_input(slider).value = this._value.toString();
             slider_get_indicator(slider).innerHTML =
@@ -1547,7 +1623,10 @@ class ParamList {
             if (get_value_type(param.get()) !== elem.type) {
                 throw new Error("data has a different value type");
             }
-            if (typeof param.get() === "number") {
+            if (typeof param.get() === "boolean") {
+                param.set(elem.value, invoke_change_event);
+            }
+            else if (typeof param.get() === "number") {
                 param.set(elem.value, invoke_change_event);
             }
             else if (param.get() instanceof Vec2) {
@@ -1632,29 +1711,33 @@ function init() {
         set_lang(lang_bank.languages[new_lang_idx]);
     });
     // add parameters
-    param_list.add(new Param("tile_size", "@@dimensions", new Vec2(200., 400.), "use-id", () => render_canvas(), null, { min: 10., max: 1000., step: 1., value_unit: "@@px", decimal_digits: 0 }));
-    param_list.add(new Param("border_thickness", "@@thickness", 3., "use-id", () => render_canvas(), null, { min: 0., max: 20., step: .25, value_unit: "@@px", decimal_digits: 2 }));
-    param_list.add(new Param("grid_lines_density", "@@density", 400., "use-id", () => render_canvas(), null, { min: 1., max: 2000., step: 1., decimal_digits: 0 }));
-    param_list.add(new Param("grid_lines_thickness", "@@thickness", 1., "use-id", () => render_canvas(), null, { min: 0., max: 20., step: .25, value_unit: "@@px", decimal_digits: 2 }));
-    param_list.add(new Param("grid_lines_opacity_horizontal", "@@horizontal-lines", 0., "use-id", () => render_canvas(), null, { min: 0., max: 1., step: .001, decimal_digits: 2 }));
-    param_list.add(new Param("grid_lines_opacity_vertical", "@@vertical-lines", .05, "use-id", () => render_canvas(), null, { min: 0., max: 1., step: .001, decimal_digits: 2 }));
-    param_list.add(new Param("masjad_position", "@@position", .125, "use-id", () => render_canvas(), null, { min: 0., max: .5, step: .001, decimal_digits: 2 }));
-    param_list.add(new Param("masjad_radius", "@@radius", .05, "use-id", () => render_canvas(), null, { min: 0., max: .5, step: .001, decimal_digits: 2 }));
-    param_list.add(new Param("feet_vertical_position", "@@position", .2, "use-id", () => render_canvas(), null, { min: 0., max: .5, step: .001, decimal_digits: 2 }));
-    param_list.add(new Param("feet_horizontal_distance", "@@distance", .12, "use-id", () => render_canvas(), null, { min: 0., max: .3, step: .001, decimal_digits: 2 }));
-    param_list.add(new Param("feet_thickness", "@@thickness", 1., "use-id", () => render_canvas(), null, { min: 0., max: 20., step: .25, value_unit: "@@px", decimal_digits: 2 }));
-    param_list.add(new Param("feet_opacity", "@@opacity", 1., "use-id", () => render_canvas(), null, { min: 0., max: 1., step: .001, decimal_digits: 2 }));
-    param_list.add(new Param("feet_size", "@@dimensions", new Vec2(.05, .13), "use-id", () => render_canvas(), null, { min: 0., max: .3, step: .001, decimal_digits: 2 }));
-    param_list.add(new Param("transform_scale", "@@scale", new Vec2(1., 1.), "use-id", () => render_canvas(), null, { min: .1, max: 3., step: .001, decimal_digits: 3 }));
-    param_list.add(new Param("transform_skew", "@@skew", new Vec2(0., 0.), "use-id", () => render_canvas(), null, { min: -1., max: 1., step: .001, decimal_digits: 3 }));
-    param_list.add(new Param("transform_rotation", "@@rotation", 0., "use-id", () => render_canvas(), null, { min: -180., max: 180., step: .001, decimal_digits: 2 }));
-    param_list.add(new Param("transform_offset", "@@offset", new Vec2(0., 0.), "use-id", () => render_canvas(), null, { min: -200., max: 200., step: .25, value_unit: "@@px", decimal_digits: 2 }));
+    param_list.add(new Param("tile_size", "@@dimensions", new Vec2(200., 400.), "use-id", () => render_canvas(), null, { is_gl_uniform: true, min: 10., max: 1000., step: 1., value_unit: "@@px", decimal_digits: 0 }));
+    param_list.add(new Param("border_thickness", "@@thickness", 3., "use-id", () => render_canvas(), null, { is_gl_uniform: true, min: 0., max: 20., step: .25, value_unit: "@@px", decimal_digits: 2 }));
+    param_list.add(new Param("grid_lines_density", "@@density", 400., "use-id", () => render_canvas(), null, { is_gl_uniform: true, min: 1., max: 2000., step: 1., decimal_digits: 0 }));
+    param_list.add(new Param("grid_lines_thickness", "@@thickness", 1., "use-id", () => render_canvas(), null, { is_gl_uniform: true, min: 0., max: 20., step: .25, value_unit: "@@px", decimal_digits: 2 }));
+    param_list.add(new Param("grid_lines_opacity_horizontal", "@@horizontal-lines", 0., "use-id", () => render_canvas(), null, { is_gl_uniform: true, min: 0., max: 1., step: .001, decimal_digits: 2 }));
+    param_list.add(new Param("grid_lines_opacity_vertical", "@@vertical-lines", .05, "use-id", () => render_canvas(), null, { is_gl_uniform: true, min: 0., max: 1., step: .001, decimal_digits: 2 }));
+    param_list.add(new Param("masjad_position", "@@position", .125, "use-id", () => render_canvas(), null, { is_gl_uniform: true, min: 0., max: .5, step: .001, decimal_digits: 2 }));
+    param_list.add(new Param("masjad_radius", "@@radius", .05, "use-id", () => render_canvas(), null, { is_gl_uniform: true, min: 0., max: .5, step: .001, decimal_digits: 2 }));
+    param_list.add(new Param("feet_vertical_position", "@@position", .2, "use-id", () => render_canvas(), null, { is_gl_uniform: true, min: 0., max: .5, step: .001, decimal_digits: 2 }));
+    param_list.add(new Param("feet_horizontal_distance", "@@distance", .12, "use-id", () => render_canvas(), null, { is_gl_uniform: true, min: 0., max: .3, step: .001, decimal_digits: 2 }));
+    param_list.add(new Param("feet_thickness", "@@thickness", 1., "use-id", () => render_canvas(), null, { is_gl_uniform: true, min: 0., max: 20., step: .25, value_unit: "@@px", decimal_digits: 2 }));
+    param_list.add(new Param("feet_opacity", "@@opacity", 1., "use-id", () => render_canvas(), null, { is_gl_uniform: true, min: 0., max: 1., step: .001, decimal_digits: 2 }));
+    param_list.add(new Param("feet_size", "@@dimensions", new Vec2(.05, .13), "use-id", () => render_canvas(), null, { is_gl_uniform: true, min: 0., max: .3, step: .001, decimal_digits: 2 }));
+    param_list.add(new Param("transform_scale", "@@scale", new Vec2(1., 1.), "use-id", () => render_canvas(), null, { is_gl_uniform: true, min: .1, max: 3., step: .001, decimal_digits: 3 }));
+    param_list.add(new Param("transform_skew", "@@skew", new Vec2(0., 0.), "use-id", () => render_canvas(), null, { is_gl_uniform: true, min: -1., max: 1., step: .001, decimal_digits: 3 }));
+    param_list.add(new Param("transform_rotation", "@@rotation", 0., "use-id", () => render_canvas(), null, { is_gl_uniform: true, min: -180., max: 180., step: .001, decimal_digits: 2 }));
+    param_list.add(new Param("transform_offset", "@@offset", new Vec2(0., 0.), "use-id", () => render_canvas(), null, { is_gl_uniform: true, min: -200., max: 200., step: .25, value_unit: "@@px", decimal_digits: 2 }));
     param_list.add(new Param("background_color_h", "@@hue", 0., "use-id", () => { update_color_blobs(); render_canvas(); }, () => update_color_blobs(), { min: 0., max: 1., step: .001, decimal_digits: 2 }));
     param_list.add(new Param("background_color_s", "@@saturation", 0., "use-id", () => { update_color_blobs(); render_canvas(); }, () => update_color_blobs(), { min: 0., max: 1., step: .001, decimal_digits: 2 }));
     param_list.add(new Param("background_color_v", "@@value", 0., "use-id", () => { update_color_blobs(); render_canvas(); }, () => update_color_blobs(), { min: 0., max: 1., step: .001, decimal_digits: 2 }));
     param_list.add(new Param("pattern_color_h", "@@hue", 0., "use-id", () => { update_color_blobs(); render_canvas(); }, () => update_color_blobs(), { min: 0., max: 1., step: .001, decimal_digits: 2 }));
     param_list.add(new Param("pattern_color_s", "@@saturation", 0., "use-id", () => { update_color_blobs(); render_canvas(); }, () => update_color_blobs(), { min: 0., max: 1., step: .001, decimal_digits: 2 }));
     param_list.add(new Param("pattern_color_v", "@@value", 1., "use-id", () => { update_color_blobs(); render_canvas(); }, () => update_color_blobs(), { min: 0., max: 1., step: .001, decimal_digits: 2 }));
+    param_list.add(new Param("transparent_controls", "@@transparent-controls", false, "use-id", (param, old_value, new_value, own_change) => {
+        document.getElementById("controls").classList.toggle("article-more-transparent-bg", new_value);
+    }));
+    param_list.add(new Param("high_quality_rendering", "@@high-quality-rendering", false, "use-id", () => render_canvas()));
     // make a copy of the initial values to use in reset_params()
     default_params = deep_clone(param_list.params);
     // render
@@ -2115,6 +2198,7 @@ void main()
     }
 }
 function render_canvas() {
+    var _a;
     if (state.canvas_ready !== true) {
         console.log("can't render because canvas is not ready.");
         return;
@@ -2127,6 +2211,9 @@ function render_canvas() {
         set_uniform(state.gl, state.program, "res", new Vec2(state.canvas.width, state.canvas.height));
         // ordinary parameters
         for (const param of param_list.params) {
+            if (param.config().is_gl_uniform !== true) {
+                continue;
+            }
             if (typeof param.get() === "number"
                 || param.get() instanceof Vec2
                 || param.get() instanceof Vec3) {
@@ -2147,7 +2234,7 @@ function render_canvas() {
         set_uniform(state.gl, state.program, "background_color", arr_to_vec3(background_color));
         set_uniform(state.gl, state.program, "pattern_color", arr_to_vec3(pattern_color));
         // number of samples (for pixels jittering in anti-aliasing)
-        set_uniform(state.gl, state.program, "n_samples", 32, true);
+        set_uniform(state.gl, state.program, "n_samples", ((_a = param_list.get("high_quality_rendering")) === null || _a === void 0 ? void 0 : _a.get()) === true ? 32 : 8, true);
     }
     // bind VBO
     state.gl.bindBuffer(WebGL2RenderingContext.ARRAY_BUFFER, state.vbo);

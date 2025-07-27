@@ -1,11 +1,11 @@
 /// <reference path="utils.ts" />
 /// <reference path="ui.ts" />
 
-type Value = number | Vec2;
+type Value = boolean | number | Vec2;
 
 function get_value_type(v: Value): string {
-    if (typeof v === "number") {
-        return "number";
+    if (["number", "boolean"].includes(typeof v)) {
+        return typeof v;
     }
     else if (v instanceof Vec2) {
         return "Vec2";
@@ -150,11 +150,31 @@ class Param {
         elem.toggleAttribute("has-ever-rendered", true);
         elem.className = "control-container";
 
-        let label = elem.appendChild(document.createElement("div"));
-        label.className = "control-label";
-        label.innerHTML = text_bank.resolve(this._name);
+        if (typeof this._value !== "boolean") {
+            let label = elem.appendChild(document.createElement("div"));
+            label.className = "control-label";
+            label.innerHTML = text_bank.resolve(this._name);
+        }
 
-        if (typeof this._value === "number") {
+        if (typeof this._value === "boolean") {
+            elem.classList.add("width-fit");
+
+            let checkbox = elem.appendChild(checkbox_create(
+                text_bank.resolve(this._name),
+                this._value
+            ));
+
+            let input = checkbox_get_input(checkbox);
+            input.addEventListener("change", () => {
+                const old_value = this._value;
+                this._value = input.checked;
+
+                if (this._change_event !== null) {
+                    this._change_event(this, old_value, this._value, false);
+                }
+            });
+        }
+        else if (typeof this._value === "number") {
             let slider = elem.appendChild(slider_create(
                 (this._config.min || 0.) as number,
                 (this._config.max || 1.) as number,
@@ -167,7 +187,7 @@ class Param {
 
             let input = slider_get_input(slider);
             input.addEventListener("input", () => {
-                const old_value = deep_clone(this._value);
+                const old_value = this._value;
                 this._value = parseFloat(input.value);
 
                 indicator.innerHTML = this.number_to_str(this._value);
@@ -187,7 +207,7 @@ class Param {
                     this._value.x
                 ));
 
-                slider.style.marginInlineEnd = "0.1rem";
+                slider.style.marginInlineEnd = "0.15rem";
 
                 let indicator = slider_get_indicator(slider);
                 indicator.innerHTML = this.number_to_str(this._value.x);
@@ -218,7 +238,7 @@ class Param {
                     this._value.y
                 ));
 
-                slider.style.marginInlineStart = "0.1rem";
+                slider.style.marginInlineStart = "0.15rem";
 
                 let indicator = slider_get_indicator(slider);
                 indicator.innerHTML = this.number_to_str(this._value.y);
@@ -262,7 +282,14 @@ class Param {
             return;
         }
 
-        if (typeof this._value === "number") {
+        if (typeof this._value === "boolean") {
+            let checkbox = this._element!.getElementsByClassName(
+                "checkbox-wrapper"
+            )[0]! as HTMLElement;
+
+            checkbox_set_checked(checkbox, this._value);
+        }
+        else if (typeof this._value === "number") {
             let slider = this._element!.getElementsByClassName(
                 "slider-wrapper"
             )[0]! as HTMLElement;
@@ -372,7 +399,10 @@ class ParamList {
                 throw new Error("data has a different value type");
             }
 
-            if (typeof param.get() === "number") {
+            if (typeof param.get() === "boolean") {
+                param.set(elem.value! as boolean, invoke_change_event);
+            }
+            else if (typeof param.get() === "number") {
                 param.set(elem.value! as number, invoke_change_event);
             } else if (param.get() instanceof Vec2) {
                 param.set(new Vec2(

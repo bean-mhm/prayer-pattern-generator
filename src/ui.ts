@@ -1,15 +1,19 @@
+/*
+<div class="control slider-wrapper">
+  <input class="slider-input" type="range">
+  <div class="slider-indicator">100 cm</div>
+</div>
+*/
 function slider_create(
     min: number,
     max: number,
     step: number,
     value: number
 ): HTMLElement {
-    let slider_wrapper = document.createElement("div");
-    slider_wrapper.className = "control slider-wrapper";
+    let wrapper = document.createElement("div");
+    wrapper.className = "control slider-wrapper";
 
-    let input = slider_wrapper.appendChild(
-        document.createElement("input")
-    );
+    let input = wrapper.appendChild(document.createElement("input"));
     input.className = "slider-input";
     input.type = "range";
 
@@ -18,9 +22,7 @@ function slider_create(
     input.step = step.toString();
     input.value = value.toString();
 
-    let indicator = slider_wrapper.appendChild(
-        document.createElement("div")
-    );
+    let indicator = wrapper.appendChild(document.createElement("div"));
     indicator.className = "slider-indicator";
 
     let show_indicator = () => indicator.classList.add("slider-indicator-show");
@@ -35,7 +37,7 @@ function slider_create(
     input.addEventListener("mouseleave", hide_indicator);
     input.addEventListener("pointerleave", hide_indicator);
 
-    return slider_wrapper;
+    return wrapper;
 }
 
 function slider_get_input(elem: HTMLElement): HTMLInputElement {
@@ -44,4 +46,53 @@ function slider_get_input(elem: HTMLElement): HTMLInputElement {
 
 function slider_get_indicator(elem: HTMLElement): HTMLDivElement {
     return elem.getElementsByTagName("div")[0] as HTMLDivElement;
+}
+
+/*
+<label class="checkbox-wrapper">
+  <input type="checkbox" checked="checked">
+  <span class="checkmark"></span>
+  check me out
+</label>
+*/
+function checkbox_create(label: string, checked: boolean): HTMLElement {
+    let wrapper = document.createElement("label");
+    wrapper.className = "control checkbox-wrapper";
+
+    let input = wrapper.appendChild(
+        document.createElement("input")
+    );
+    input.type = "checkbox";
+    input.checked = checked;
+
+    let checkmark = wrapper.appendChild(document.createElement("span"));
+    checkmark.className = "checkmark";
+
+    wrapper.innerHTML += label;
+
+    return wrapper;
+}
+
+function checkbox_get_input(elem: HTMLElement): HTMLInputElement {
+    return elem.getElementsByTagName("input")[0]!;
+}
+
+function checkbox_get_checked(elem: HTMLElement): boolean {
+    return elem.getElementsByTagName("input")[0]!.checked;
+}
+
+function checkbox_set_checked(elem: HTMLElement, checked: boolean) {
+    elem.getElementsByTagName("input")[0]!.checked = checked;
+}
+
+function control_container_create(id: string, label: string): HTMLElement {
+    let elem: HTMLElement = document.createElement("div");
+    elem.id = id;
+    elem.className = "control-container";
+
+    let lbl = elem.appendChild(document.createElement("div"));
+    lbl.className = "control-label";
+    lbl.innerHTML = label;
+
+    return elem;
 }
