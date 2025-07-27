@@ -1326,6 +1326,9 @@ function checkbox_create(label, checked) {
     let input = wrapper.appendChild(document.createElement("input"));
     input.type = "checkbox";
     input.checked = checked;
+    if (checked) {
+        input.setAttribute("checked", "checked");
+    }
     let checkmark = wrapper.appendChild(document.createElement("span"));
     checkmark.className = "checkmark";
     wrapper.innerHTML += label;

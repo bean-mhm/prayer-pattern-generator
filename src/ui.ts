@@ -64,6 +64,9 @@ function checkbox_create(label: string, checked: boolean): HTMLElement {
     );
     input.type = "checkbox";
     input.checked = checked;
+    if (checked) {
+        input.setAttribute("checked", "checked");
+    }
 
     let checkmark = wrapper.appendChild(document.createElement("span"));
     checkmark.className = "checkmark";
