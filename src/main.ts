@@ -51,6 +51,8 @@ function set_lang(language: Language) {
 }
 
 function init() {
+    recalculate_sqrt_viewport_area();
+
     // resolve multilingual texts
     set_lang(lang_bank.get("fa")!);
 
@@ -305,7 +307,17 @@ function init() {
     render_canvas();
 }
 
+function recalculate_sqrt_viewport_area() {
+    const sqrt_area = Math.ceil(Math.sqrt(
+        window.innerWidth * window.innerHeight * (window.devicePixelRatio || 1)
+    ));
+    document.getElementById("dynamic-style-0")!.textContent =
+        `:root { --sqrt-viewport-area: ${sqrt_area}px; }`;
+}
+
 function viewport_resized() {
+    recalculate_sqrt_viewport_area();
+
     init_canvas();
     render_canvas();
 }

@@ -20,8 +20,13 @@
 }
 
 :root {
+  --sqrt-viewport-area: 1000px;
+
   --font-family: Rubik, system-ui, sans-serif;
-  --font-size: 20px;
+  --font-size: calc(var(--sqrt-viewport-area) * 0.013);
+
+  font-family: var(--font-family);
+  font-size: var(--font-size);
 
   --accent-color: #6251ff;
 
@@ -80,36 +85,8 @@
   --text-color: #f2f2f2;
 
   --transition-time: 0.15s;
-}
 
-@media only screen and (max-width: 720px) {
-  :root {
-    --font-size: 19px;
-  }
-}
-
-@media only screen and (max-width: 540px) {
-  :root {
-    --font-size: 17px;
-  }
-}
-
-@media only screen and (max-width: 480px) {
-  :root {
-    --font-size: 16px;
-  }
-}
-
-@media only screen and (max-width: 340px) {
-  :root {
-    --font-size: 14px;
-  }
-}
-
-@media only screen and (max-width: 290px) {
-  :root {
-    --font-size: 12px;
-  }
+  -webkit-tap-highlight-color: transparent;
 }
 
 ::selection {
@@ -331,7 +308,7 @@ button {
 
   text-align: center;
   text-decoration: none;
-  font-size: 1.3rem;
+  font-size: 1.2rem;
   font-family: var(--font-family);
 
   background-color: var(--accent-color);
@@ -346,7 +323,7 @@ button:hover {
 
 button:active {
   background-color: var(--accent-color-d-10);
-  transform: scale(0.98);
+  transform: scale(0.96);
 }
 
 button:focus {
@@ -602,6 +579,14 @@ input[type="range"]::-webkit-slider-thumb:hover {
 
 input[type="range"]::-moz-range-thumb:hover {
   background: var(--accent-color-l-10);
+}
+
+input[type="range"]::-webkit-slider-thumb:active {
+  transform: scale(0.75);
+}
+
+input[type="range"]::-moz-range-thumb:active {
+  transform: scale(0.75);
 }
 
 .block-container {
