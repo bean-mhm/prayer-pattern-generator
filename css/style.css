@@ -525,7 +525,7 @@ button.transparent-button:focus {
 }
 
 .slider-indicator-show {
-  font-size: 1.15rem;
+  font-size: 1rem;
   opacity: 0.8;
 }
 
