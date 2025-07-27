@@ -30,6 +30,9 @@ function reset_params() {
 }
 
 function set_lang(language: Language) {
+    // preserve between sessions
+    localStorage.setItem("lang", language.id.id);
+
     // update the lang attribute in the <html> tag
     document.documentElement.lang = language.id.id;
 
@@ -54,7 +57,8 @@ function init() {
     recalculate_sqrt_viewport_area();
 
     // resolve multilingual texts
-    set_lang(lang_bank.get("fa")!);
+    let lang_id: string = localStorage.getItem("lang") || "en";
+    set_lang(lang_bank.get(lang_id) || lang_bank.languages[0]!);
 
     // events
     document.getElementById("btn-hide")!.addEventListener("click", () => {
