@@ -331,11 +331,12 @@ function init() {
 }
 
 function recalculate_sqrt_viewport_area() {
-    const sqrt_area = Math.ceil(Math.sqrt(
-        window.innerWidth * window.innerHeight * (window.devicePixelRatio || 1)
-    ));
+    const font_size = 1.1 * Math.pow(
+        document.body.clientWidth * document.body.clientHeight,
+        .2
+    );
     document.getElementById("dynamic-style-0")!.textContent =
-        `:root { --sqrt-viewport-area: ${sqrt_area}px; }`;
+        `:root { --font-size: ${font_size}px; }`;
 }
 
 function viewport_resized() {

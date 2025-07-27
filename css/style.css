@@ -20,10 +20,8 @@
 }
 
 :root {
-  --sqrt-viewport-area: 800px;
-
   --font-family: Rubik, system-ui, sans-serif;
-  --font-size: calc(var(--sqrt-viewport-area) * 0.013);
+  --font-size: 18px;
 
   font-family: var(--font-family);
   font-size: var(--font-size);
@@ -451,8 +449,8 @@ button.transparent-button:focus {
 }
 
 #controls {
-  margin-top: 3rem;
-  margin-bottom: 4rem;
+  margin-top: 2.5rem;
+  margin-bottom: 2.5rem;
 }
 
 .width-fit {
