@@ -692,19 +692,9 @@ input[type="range"]:active::-moz-range-thumb {
   outline-offset: 0.15rem !important;
 }
 
-/* hide checkmark when unchecked */
-.checkmark:after {
-  content: "";
-  display: none;
-}
-
-/* show checkmark when checked */
-.checkbox-wrapper input:checked~.checkmark:after {
-  display: inline-block;
-}
-
-/* checkmark */
+/* checkmark (hidden by default) */
 .checkbox-wrapper .checkmark:after {
+  display: inline-block;
   width: 0.25rem;
   height: 0.5rem;
   border: solid white;
@@ -712,6 +702,15 @@ input[type="range"]:active::-moz-range-thumb {
   -webkit-transform: rotate(45deg);
   -ms-transform: rotate(45deg);
   transform: rotate(45deg);
+
+  content: "";
+  opacity: 0;
+  transition: var(--transition-time);
+}
+
+/* show checkmark when checked */
+.checkbox-wrapper input:checked~.checkmark:after {
+  opacity: 1;
 }
 
 .block-container {
