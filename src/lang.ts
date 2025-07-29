@@ -350,6 +350,10 @@ const text_bank = new TextBank(
             "en": "Hide",
             "fa": "پنهان کن"
         },
+        "fullscreen": {
+            "en": "Fullscreen",
+            "fa": "تمام‌صفحه"
+        },
         "import": {
             "en": "Import",
             "fa": "وارد کن"

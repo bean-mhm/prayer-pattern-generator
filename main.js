@@ -1250,6 +1250,10 @@ const text_bank = new TextBank(lang_bank.get("fa"), {
         "en": "Hide",
         "fa": "پنهان کن"
     },
+    "fullscreen": {
+        "en": "Fullscreen",
+        "fa": "تمام‌صفحه"
+    },
     "import": {
         "en": "Import",
         "fa": "وارد کن"
@@ -1697,13 +1701,22 @@ function init() {
     let lang_id = localStorage.getItem("lang") || "en";
     set_lang(lang_bank.get(lang_id) || lang_bank.languages[0]);
     // events
-    document.getElementById("btn-hide").addEventListener("click", () => {
-        document.getElementById("controls").classList.add("hide");
-        document.getElementById("canvas").classList.remove("untouchable", "negative-z");
+    document.getElementById("btn-fullscreen").addEventListener("click", () => {
+        hide_controls();
+        document.documentElement.requestFullscreen();
     });
     document.getElementById("canvas").addEventListener("click", () => {
-        document.getElementById("controls").classList.remove("hide");
-        document.getElementById("canvas").classList.add("untouchable", "negative-z");
+        document.exitFullscreen();
+        show_controls();
+    });
+    document.addEventListener("fullscreenchange", (e) => {
+        if (document.fullscreenElement) {
+            // entered fullscreen mode
+        }
+        else {
+            // exited fullscreen mode, so show controls
+            show_controls();
+        }
     });
     document.getElementById("btn-reset-all").addEventListener("click", () => {
         reset_params();
@@ -1768,6 +1781,14 @@ function recalculate_font_size() {
     const font_size = 1.1 * Math.pow(document.body.clientWidth * document.body.clientHeight, .2);
     document.getElementById("dynamic-style-0").textContent =
         `:root { --font-size: ${font_size}px; }`;
+}
+function show_controls() {
+    document.getElementById("controls").classList.remove("hide");
+    document.getElementById("canvas").classList.add("untouchable", "negative-z");
+}
+function hide_controls() {
+    document.getElementById("controls").classList.add("hide");
+    document.getElementById("canvas").classList.remove("untouchable", "negative-z");
 }
 function update_color_blobs() {
     var _a, _b, _c, _d, _e, _f;

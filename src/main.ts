@@ -68,13 +68,21 @@ function init() {
     set_lang(lang_bank.get(lang_id) || lang_bank.languages[0]!);
 
     // events
-    document.getElementById("btn-hide")!.addEventListener("click", () => {
-        document.getElementById("controls")!.classList.add("hide");
-        document.getElementById("canvas")!.classList.remove("untouchable", "negative-z");
+    document.getElementById("btn-fullscreen")!.addEventListener("click", () => {
+        hide_controls();
+        document.documentElement.requestFullscreen();
     });
     document.getElementById("canvas")!.addEventListener("click", () => {
-        document.getElementById("controls")!.classList.remove("hide");
-        document.getElementById("canvas")!.classList.add("untouchable", "negative-z");
+        document.exitFullscreen();
+        show_controls();
+    });
+    document.addEventListener("fullscreenchange", (e: Event) => {
+        if (document.fullscreenElement) {
+            // entered fullscreen mode
+        } else {
+            // exited fullscreen mode, so show controls
+            show_controls();
+        }
     });
     document.getElementById("btn-reset-all")!.addEventListener("click", () => {
         reset_params();
@@ -347,6 +355,16 @@ function recalculate_font_size() {
     );
     document.getElementById("dynamic-style-0")!.textContent =
         `:root { --font-size: ${font_size}px; }`;
+}
+
+function show_controls() {
+    document.getElementById("controls")!.classList.remove("hide");
+    document.getElementById("canvas")!.classList.add("untouchable", "negative-z");
+}
+
+function hide_controls() {
+    document.getElementById("controls")!.classList.add("hide");
+    document.getElementById("canvas")!.classList.remove("untouchable", "negative-z");
 }
 
 function update_color_blobs() {
