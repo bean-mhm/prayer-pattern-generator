@@ -4,6 +4,8 @@ This tool lets you generate patterns for group prayers (AKA Jama'ah) performed i
 Muslim mosques. It's written in TypeScript and uses good old raw HTML and CSS
 without any frameworks. It uses WebGL2 and a simple *(as long as you're a graphics programmer)* fragment shader to render a bunch of 2D shapes using 2D signed distance fields and jitter multi-sampling for anti-aliasing.
 
+[Live Demo](https://hfarid.ir/prayer-pattern-generator)
+
 ![screenshot](./images/prayer-pattern-generator-3.png)
 
 ![screenshot](./images/prayer-pattern-generator-2.png)
