@@ -233,6 +233,9 @@ function insert_comment_before(text: string, elem: Element) {
 }
 
 function is_firefox_mobile() {
-    const ua = navigator.userAgent;
-    return /Firefox\/.*Mobile|Fennec|Gecko.*Mobile/.test(ua);
+    const ua = navigator.userAgent.toLowerCase();
+    const is_firefox = ua.includes('firefox');
+    const is_mobile = ua.includes('android') || ua.includes('iphone') || ua.includes('ipad') || ua.includes('iemobile') || ua.includes('opera mini');
+
+    return is_firefox && is_mobile;
 }
