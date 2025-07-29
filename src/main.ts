@@ -3,6 +3,8 @@
 /// <reference path="gl.ts" />
 /// <reference path="lang.ts" />
 
+document.addEventListener('DOMContentLoaded', init);
+
 interface State {
     canvas_ready: boolean,
     canvas: HTMLCanvasElement | null,

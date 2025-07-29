@@ -1649,6 +1649,7 @@ class ParamList {
 /// <reference path="params.ts" />
 /// <reference path="gl.ts" />
 /// <reference path="lang.ts" />
+document.addEventListener('DOMContentLoaded', init);
 var state = {
     canvas_ready: false,
     canvas: null,
