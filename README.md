@@ -6,7 +6,7 @@ without any frameworks. It uses WebGL2 and a simple *(as long as you're a graphi
 
 [Live Demo](https://hfarid.ir/prayer-pattern-generator)
 
-![screenshot](./images/prayer-pattern-generator-3.png)
+![screenshot](./images/prayer-pattern-generator-en.png)
 
 ![screenshot](./images/prayer-pattern-generator-2.png)
 
