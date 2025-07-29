@@ -888,7 +888,7 @@ function render_canvas() {
             state.gl!,
             state.program!,
             "n_samples",
-            param_list.get("high_quality_rendering")?.get() === true ? 32 : 8,
+            param_list.get("high_quality_rendering")?.get() === true ? 32 : 2,
             true
         );
     }

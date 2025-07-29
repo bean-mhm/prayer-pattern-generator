@@ -2251,7 +2251,7 @@ function render_canvas() {
         set_uniform(state.gl, state.program, "background_color", arr_to_vec3(background_color));
         set_uniform(state.gl, state.program, "pattern_color", arr_to_vec3(pattern_color));
         // number of samples (for pixels jittering in anti-aliasing)
-        set_uniform(state.gl, state.program, "n_samples", ((_a = param_list.get("high_quality_rendering")) === null || _a === void 0 ? void 0 : _a.get()) === true ? 32 : 8, true);
+        set_uniform(state.gl, state.program, "n_samples", ((_a = param_list.get("high_quality_rendering")) === null || _a === void 0 ? void 0 : _a.get()) === true ? 32 : 2, true);
     }
     // bind VBO
     state.gl.bindBuffer(WebGL2RenderingContext.ARRAY_BUFFER, state.vbo);
