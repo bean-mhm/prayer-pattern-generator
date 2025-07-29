@@ -10,7 +10,7 @@ without any frameworks. It uses WebGL2 and a simple *(as long as you're a graphi
 
 # Why
 
-The initial motivation was to use one or more projectors on the ceiling of mosques to project this pattern onto the ground so that people can stand neatly in order.
+The main motivation is to use one or more projectors on the ceiling of mosques to project this pattern onto the ground so that people can stand neatly in order.
 
 # Features
 
