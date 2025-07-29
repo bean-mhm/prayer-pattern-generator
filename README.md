@@ -1,4 +1,4 @@
-# Prayer Pattern Generator
+# 🕌 Prayer Pattern Generator
 
 This tool lets you generate patterns for group prayers (AKA Jama'ah) performed in
 Muslim mosques. It's written in TypeScript and uses good old raw HTML and CSS
