@@ -54,7 +54,7 @@ function set_lang(language: Language) {
 }
 
 function init() {
-    recalculate_sqrt_viewport_area();
+    recalculate_font_size();
 
     // fixing a bug in Firefox on mobile (on Android at least)
     if (is_firefox_mobile()) {
@@ -331,20 +331,20 @@ function init() {
     render_canvas();
 }
 
-function recalculate_sqrt_viewport_area() {
+function viewport_resized() {
+    recalculate_font_size();
+
+    init_canvas();
+    render_canvas();
+}
+
+function recalculate_font_size() {
     const font_size = 1.1 * Math.pow(
         document.body.clientWidth * document.body.clientHeight,
         .2
     );
     document.getElementById("dynamic-style-0")!.textContent =
         `:root { --font-size: ${font_size}px; }`;
-}
-
-function viewport_resized() {
-    recalculate_sqrt_viewport_area();
-
-    init_canvas();
-    render_canvas();
 }
 
 function update_color_blobs() {
