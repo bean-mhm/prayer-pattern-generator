@@ -446,7 +446,7 @@ button.transparent-button:focus {
 
 /* fixing a bug in Firefox mobile (Android at least) */
 #controls.firefox-mobile {
-  margin-bottom: 8rem;
+  margin-bottom: 8.5rem;
 }
 
 .width-fit {
@@ -575,6 +575,8 @@ input[type="range"]::-webkit-slider-thumb {
   transition: var(--transition-time);
 
   transform: scale(0.7);
+
+  pointer-events: none;
 }
 
 input[type="range"]::-moz-range-thumb {
@@ -588,21 +590,17 @@ input[type="range"]::-moz-range-thumb {
   transition: var(--transition-time);
 
   transform: scale(0.7);
-}
 
-input[type="range"]::-webkit-slider-thumb:hover {
-  background: var(--accent-color-l-10);
-}
-
-input[type="range"]::-moz-range-thumb:hover {
-  background: var(--accent-color-l-10);
+  pointer-events: none;
 }
 
 input[type="range"]:active::-webkit-slider-thumb:active {
+  background: var(--accent-color-l-10);
   transform: scale(1);
 }
 
 input[type="range"]:active::-moz-range-thumb {
+  background: var(--accent-color-l-10);
   transform: scale(1);
 }
 
