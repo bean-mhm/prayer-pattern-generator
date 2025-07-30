@@ -371,6 +371,10 @@ class ParamList {
     serialize() {
         let data: Dictionary = {};
         for (const param of this.params) {
+            if (param.config().dont_export === true) {
+                continue;
+            }
+
             data[param.id()] = {
                 type: get_value_type(param.get()),
                 value: param.get()

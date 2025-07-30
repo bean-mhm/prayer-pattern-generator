@@ -69,12 +69,12 @@ function init() {
 
     // events
     document.getElementById("btn-fullscreen")!.addEventListener("click", () => {
-        hide_controls();
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        } else {
+            show_controls();
+        }
         document.documentElement.requestFullscreen();
-    });
-    document.getElementById("canvas")!.addEventListener("click", () => {
-        document.exitFullscreen();
-        show_controls();
     });
     document.addEventListener("fullscreenchange", (e: Event) => {
         if (document.fullscreenElement) {
@@ -83,6 +83,12 @@ function init() {
             // exited fullscreen mode, so show controls
             show_controls();
         }
+    });
+    document.getElementById("btn-hide")!.addEventListener("click", () => {
+        hide_controls();
+    });
+    document.getElementById("canvas")!.addEventListener("click", () => {
+        show_controls();
     });
     document.getElementById("btn-reset-all")!.addEventListener("click", () => {
         reset_params();
@@ -323,14 +329,17 @@ function init() {
         false,
         "use-id",
         () => update_controls_transparency(),
-        () => update_controls_transparency()
+        () => update_controls_transparency(),
+        { dont_export: true }
     ));
     param_list.add(new Param(
         "high_quality_rendering",
         "@@high-quality-rendering",
         false,
         "use-id",
-        () => render_canvas()
+        () => render_canvas(),
+        null,
+        { dont_export: true }
     ));
 
     // make a copy of the initial values to use in reset_params()
@@ -920,17 +929,17 @@ function render_canvas() {
     state.gl!.drawArrays(WebGL2RenderingContext.TRIANGLES, 0, 6);
 }
 
-const param_json_prefix: string = "prayer pattern data\n";
-
 function import_params() {
     load_text_from_file()
         .then(text => {
-            if (!text.startsWith(param_json_prefix)) {
-                console.error("incorrect data");
-                return;
+            try {
+                if (!text.startsWith("{") || !text.endsWith("}")) {
+                    throw new Error("not a JSON dictionary");
+                }
+                param_list.deserialize(text);
+            } catch (e) {
+                console.error("failed to import parameters from JSON file:", e);
             }
-            text = text.slice(param_json_prefix.length);
-            param_list.deserialize(text);
             render_canvas();
         })
         .catch(err => {
@@ -941,6 +950,6 @@ function import_params() {
 function export_params() {
     save_text_as_file(
         "pattern.json",
-        param_json_prefix + param_list.serialize()
+        param_list.serialize()
     );
 }

@@ -1614,6 +1614,9 @@ class ParamList {
     serialize() {
         let data = {};
         for (const param of this.params) {
+            if (param.config().dont_export === true) {
+                continue;
+            }
             data[param.id()] = {
                 type: get_value_type(param.get()),
                 value: param.get()
@@ -1702,12 +1705,13 @@ function init() {
     set_lang(lang_bank.get(lang_id) || lang_bank.languages[0]);
     // events
     document.getElementById("btn-fullscreen").addEventListener("click", () => {
-        hide_controls();
+        if (document.fullscreenElement) {
+            document.exitFullscreen();
+        }
+        else {
+            show_controls();
+        }
         document.documentElement.requestFullscreen();
-    });
-    document.getElementById("canvas").addEventListener("click", () => {
-        document.exitFullscreen();
-        show_controls();
     });
     document.addEventListener("fullscreenchange", (e) => {
         if (document.fullscreenElement) {
@@ -1717,6 +1721,12 @@ function init() {
             // exited fullscreen mode, so show controls
             show_controls();
         }
+    });
+    document.getElementById("btn-hide").addEventListener("click", () => {
+        hide_controls();
+    });
+    document.getElementById("canvas").addEventListener("click", () => {
+        show_controls();
     });
     document.getElementById("btn-reset-all").addEventListener("click", () => {
         reset_params();
@@ -1764,8 +1774,8 @@ function init() {
     param_list.add(new Param("pattern_color_h", "@@hue", 0., "use-id", () => { update_color_blobs(); render_canvas(); }, () => update_color_blobs(), { min: 0., max: 1., step: .001, decimal_digits: 2 }));
     param_list.add(new Param("pattern_color_s", "@@saturation", 0., "use-id", () => { update_color_blobs(); render_canvas(); }, () => update_color_blobs(), { min: 0., max: 1., step: .001, decimal_digits: 2 }));
     param_list.add(new Param("pattern_color_v", "@@value", 1., "use-id", () => { update_color_blobs(); render_canvas(); }, () => update_color_blobs(), { min: 0., max: 1., step: .001, decimal_digits: 2 }));
-    param_list.add(new Param("transparent_controls", "@@transparent-controls", false, "use-id", () => update_controls_transparency(), () => update_controls_transparency()));
-    param_list.add(new Param("high_quality_rendering", "@@high-quality-rendering", false, "use-id", () => render_canvas()));
+    param_list.add(new Param("transparent_controls", "@@transparent-controls", false, "use-id", () => update_controls_transparency(), () => update_controls_transparency(), { dont_export: true }));
+    param_list.add(new Param("high_quality_rendering", "@@high-quality-rendering", false, "use-id", () => render_canvas(), null, { dont_export: true }));
     // make a copy of the initial values to use in reset_params()
     default_params = deep_clone(param_list.params);
     // render
@@ -2283,16 +2293,18 @@ function render_canvas() {
     state.gl.clear(WebGL2RenderingContext.COLOR_BUFFER_BIT);
     state.gl.drawArrays(WebGL2RenderingContext.TRIANGLES, 0, 6);
 }
-const param_json_prefix = "prayer pattern data\n";
 function import_params() {
     load_text_from_file()
         .then(text => {
-        if (!text.startsWith(param_json_prefix)) {
-            console.error("incorrect data");
-            return;
+        try {
+            if (!text.startsWith("{") || !text.endsWith("}")) {
+                throw new Error("not a JSON dictionary");
+            }
+            param_list.deserialize(text);
         }
-        text = text.slice(param_json_prefix.length);
-        param_list.deserialize(text);
+        catch (e) {
+            console.error("failed to import parameters from JSON file:", e);
+        }
         render_canvas();
     })
         .catch(err => {
@@ -2300,5 +2312,5 @@ function import_params() {
     });
 }
 function export_params() {
-    save_text_as_file("pattern.json", param_json_prefix + param_list.serialize());
+    save_text_as_file("pattern.json", param_list.serialize());
 }
