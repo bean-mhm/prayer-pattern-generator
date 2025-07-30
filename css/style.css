@@ -8,10 +8,13 @@
   width: 1em;
   height: 1em;
   vertical-align: middle;
-  transform: scale(120%);
 
   /* https://angel-rs.github.io/css-color-filter-generator/ */
   filter: brightness(0) saturate(100%) invert(100%) sepia(49%) saturate(110%) hue-rotate(229deg) brightness(112%) contrast(90%);
+}
+
+.inline-symbol .bigger {
+  transform: scale(120%);
 }
 
 :root {
@@ -718,8 +721,6 @@ input[type="range"]:active::-moz-range-thumb {
 
 span {
   display: inline-block;
-  width: 1em;
-  height: 1em;
   vertical-align: middle;
 }
 
