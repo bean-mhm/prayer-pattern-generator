@@ -33,7 +33,7 @@ function reset_params() {
 
 function set_lang(language: Language) {
     // preserve between sessions
-    localStorage.setItem("current_language", language.id.id);
+    localStorage.setItem("prayer-pattern-generator-lang", language.id.id);
 
     // update the lang attribute in the <html> tag
     document.documentElement.lang = language.id.id;
@@ -64,7 +64,7 @@ function init() {
     }
 
     // resolve multilingual texts
-    let lang_id: string = localStorage.getItem("current_language") || "en";
+    let lang_id: string = localStorage.getItem("prayer-pattern-generator-lang") || "en";
     set_lang(lang_bank.get(lang_id) || lang_bank.languages[0]!);
 
     // events

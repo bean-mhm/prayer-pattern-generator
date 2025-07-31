@@ -1676,7 +1676,7 @@ function reset_params() {
 }
 function set_lang(language) {
     // preserve between sessions
-    localStorage.setItem("current_language", language.id.id);
+    localStorage.setItem("prayer-pattern-generator-lang", language.id.id);
     // update the lang attribute in the <html> tag
     document.documentElement.lang = language.id.id;
     // set the CSS property "direction"
@@ -1701,7 +1701,7 @@ function init() {
         document.getElementById("controls").classList.add("firefox-mobile");
     }
     // resolve multilingual texts
-    let lang_id = localStorage.getItem("current_language") || "en";
+    let lang_id = localStorage.getItem("prayer-pattern-generator-lang") || "en";
     set_lang(lang_bank.get(lang_id) || lang_bank.languages[0]);
     // events
     document.getElementById("btn-fullscreen").addEventListener("click", () => {
